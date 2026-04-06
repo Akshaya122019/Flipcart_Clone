@@ -1,0 +1,58 @@
+<div class="col-6 col-md-4 col-lg-3">
+  <div class="product-card">
+    <a href="{% url 'products:detail' product.slug %}">
+      <div class="card-img-wrap">
+        {% if product.primary_image %}
+          <img src="{{ product.primary_image.image.url }}"
+               alt="{{ product.name }}" loading="lazy"/>
+        {% else %}
+          <img src="https://placehold.co/300x300?text=No+Image"
+               alt="No Image"/>
+        {% endif %}
+        {% if product.discount %}
+        <span class="position-absolute top-0 start-0 m-2
+                     badge bg-danger">{{ product.discount }}% OFF</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <p class="product-name">{{ product.name }}</p>
+        {% if product.brand %}
+        <p class="text-muted-fk small mb-1">{{ product.brand }}</p>
+        {% endif %}
+
+        {% if product.average_rating %}
+        <div class="mb-1">
+          <span class="rating-badge">
+            {{ product.average_rating }}
+            <i class="bi bi-star-fill" style="font-size:9px;"></i>
+          </span>
+        </div>
+        {% endif %}
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="product-price">
+            ₹{{ product.discounted_price|floatformat:0 }}
+          </span>
+          {% if product.discount %}
+          <span class="product-original">
+            ₹{{ product.price|floatformat:0 }}
+          </span>
+          <span class="product-discount">{{ product.discount }}% off</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+
+    <div class="px-3 pb-3 d-flex gap-2">
+      <button class="btn btn-fk-orange flex-grow-1 btn-sm btn-add-cart"
+              data-url="{% url 'cart:add' %}"
+              data-product="{{ product.id }}">
+        <i class="bi bi-cart-plus me-1"></i>Add to Cart
+      </button>
+      <button class="btn btn-outline-secondary btn-sm btn-wishlist"
+              data-url="{% url 'cart:wishlist_toggle' product.id %}">
+        <i class="bi bi-heart"></i>
+      </button>
+    </div>
+  </div>
+</div>

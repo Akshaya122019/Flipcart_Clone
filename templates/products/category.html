@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} — Flipkart Clone{% endblock %}
+
+{% block content %}
+
+<!-- Breadcrumb -->
+<div class="breadcrumb-fk">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{% url 'products:home' %}">Home</a></li>
+        {% if category.parent %}
+        <li class="breadcrumb-item">
+          <a href="{% url 'products:category' category.parent.slug %}">
+            {{ category.parent.name }}
+          </a>
+        </li>
+        {% endif %}
+        <li class="breadcrumb-item active">{{ category.name }}</li>
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- ── Filter sidebar ── -->
+    <div class="col-lg-2 d-none d-lg-block">
+      <div class="filter-sidebar sticky-top" style="top:80px;">
+        <p class="filter-title">Filters</p>
+
+        <!-- Price range -->
+        <div class="mb-4">
+          <p class="fw-600 small mb-2">Price Range</p>
+          <div class="d-flex gap-2">
+            <input type="number" id="min-price" class="form-control form-control-sm"
+                   placeholder="Min" value="{{ request.GET.min_price }}"/>
+            <input type="number" id="max-price" class="form-control form-control-sm"
+                   placeholder="Max" value="{{ request.GET.max_price }}"/>
+          </div>
+          <button class="btn btn-sm btn-outline-primary w-100 mt-2"
+                  id="apply-price-filter">Apply</button>
+        </div>
+
+        <!-- Brands -->
+        {% if brands %}
+        <div class="mb-4">
+          <p class="fw-600 small mb-2">Brand</p>
+          {% for brand in brands %}
+          <div class="form-check">
+            <input class="form-check-input brand-filter" type="checkbox"
+                   value="{{ brand }}" id="brand-{{ forloop.counter }}"
+                   {% if brand in request.GET.brand %}checked{% endif %}>
+            <label class="form-check-label" for="brand-{{ forloop.counter }}">
+              {{ brand }}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Rating -->
+        <div class="mb-3">
+          <p class="fw-600 small mb-2">Customer Rating</p>
+          {% for r in "4321" %}
+          <div class="form-check">
+            <input class="form-check-input rating-filter" type="radio"
+                   name="rating" value="{{ r }}"
+                   id="rating-{{ r }}"
+                   {% if request.GET.rating == r %}checked{% endif %}>
+            <label class="form-check-label small" for="rating-{{ r }}">
+              {{ r }}★ &amp; above
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+
+        <button class="btn btn-sm btn-outline-danger w-100" id="clear-filters">
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Products area ── -->
+    <div class="col-lg-10">
+
+      <!-- Header row -->
+      <div class="d-flex justify-content-between align-items-center
+                  bg-white p-3 rounded-3 shadow-sm mb-3">
+        <div>
+          <h6 class="fw-bold mb-0">{{ category.name }}</h6>
+          <small class="text-muted">{{ total }} products found</small>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <small class="text-muted d-none d-md-block">Sort by:</small>
+          <select class="form-select form-select-sm" id="sort-select"
+                  style="width:auto;">
+            <option value="popular"   {% if sort == 'popular'   %}selected{% endif %}>Popularity</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc"{% if sort == 'price_desc'%}selected{% endif %}>Price: High to Low</option>
+            <option value="newest"    {% if sort == 'newest'    %}selected{% endif %}>Newest First</option>
+            <option value="discount"  {% if sort == 'discount'  %}selected{% endif %}>Best Discount</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Subcategories -->
+      {% if subcategories %}
+      <div class="d-flex gap-2 flex-wrap mb-3">
+        {% for sub in subcategories %}
+        <a href="{% url 'products:category' sub.slug %}"
+           class="btn btn-sm btn-outline-secondary rounded-pill">
+          {{ sub.name }}
+        </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Product grid -->
+      {% if page_obj %}
+      <div class="row g-3" id="products-grid">
+        {% for product in page_obj %}
+        {% include 'products/_product_card.html' %}
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+      <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+          <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}&sort={{ sort }}">{{ num }}</a>
+          </li>
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+      {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-box-seam display-1"></i>
+        <h5 class="mt-3">No products in this category yet</h5>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+
+  // Sort
+  $('#sort-select').on('change', function () {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', $(this).val());
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+  });
+
+  // Price filter
+  $('#apply-price-filter').on('click', function () {
+    const url = new URL(window.location.href);
+    const min = $('#min-price').val();
+    const max = $('#max-price').val();
+    if (min) url.searchParams.set('min_price', min);
+    else url.searchParams.delete('min_price');
+    if (max) url.searchParams.set('max_price', max);
+    else url.searchParams.delete('max_price');
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+  });
+
+  // Brand filter
+  $('.brand-filter').on('change', function () {
+    const url   = new URL(window.location.href);
+    const checked = [];
+    $('.brand-filter:checked').each(function () {
+      checked.push($(this).val());
+    });
+    url.searchParams.delete('brand');
+    checked.forEach(b => url.searchParams.append('brand', b));
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+  });
+
+  // Rating filter
+  $('.rating-filter').on('change', function () {
+    const url = new URL(window.location.href);
+    url.searchParams.set('rating', $(this).val());
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+  });
+
+  // Clear filters
+  $('#clear-filters').on('click', function () {
+    window.location.href = window.location.pathname;
+  });
+
+});
+</script>
+{% endblock %}

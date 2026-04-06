@@ -1,0 +1,157 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block brand %}{% if is_seller %}🏪 Seller{% else %}⚡ Admin{% endif %}{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block sidebar_links %}
+{% if is_seller %}
+<a href="{% url 'dashboard:seller_dashboard' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:seller_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> My Products
+</a>
+<a href="{% url 'dashboard:seller_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> My Orders
+</a>
+{% else %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link">
+  <i class="bi bi-grid"></i> Categories
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="chart-card">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-box-seam text-primary me-2"></i>{{ title }}
+        </h6>
+        <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
+                 {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
+           class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+      </div>
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_product"/>
+
+        <div class="row g-3">
+
+          <div class="col-12">
+            <label class="form-label fw-500">Product Name *</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">
+              Slug
+              <small class="text-muted fw-normal">(auto-generated)</small>
+            </label>
+            {{ form.slug }}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Category *</label>
+            {{ form.category }}
+            {% if form.category.errors %}
+            <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Brand</label>
+            {{ form.brand }}
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-500">Price (₹) *</label>
+            {{ form.price }}
+            {% if form.price.errors %}
+            <div class="text-danger small mt-1">{{ form.price.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-500">Discount (%)</label>
+            {{ form.discount }}
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label fw-500">Stock *</label>
+            {{ form.stock }}
+            {% if form.stock.errors %}
+            <div class="text-danger small mt-1">{{ form.stock.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-500">Description *</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.description.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label fw-500">Active (visible to buyers)</label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-check">
+              {{ form.is_featured }}
+              <label class="form-check-label fw-500">Featured (show on homepage)</label>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-save me-1"></i>Save & Add Images
+          </button>
+          <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
+                   {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
+             class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('id_name').addEventListener('input', function () {
+  const slugField = document.getElementById('id_slug');
+  if (!slugField.value) {
+    slugField.value = this.value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+  }
+});
+</script>
+{% endblock %}

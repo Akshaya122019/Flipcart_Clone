@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Login — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center align-items-stretch g-0 shadow-sm rounded-3 overflow-hidden"
+       style="max-width:860px; margin:auto;">
+
+    <!-- Left panel -->
+    <div class="col-md-5 bg-fk text-white d-flex flex-column
+                justify-content-center align-items-center p-5">
+      <h3 class="fw-bold mb-3">Login</h3>
+      <p class="text-center opacity-75 small">
+        Get access to your Orders, Wishlist and Recommendations
+      </p>
+      <img src="https://static-assets-web.flixcart.com/fk-p-linchpin-web/fk-cp-zion/img/login_img_c4a81e.svg"
+           alt="login" class="img-fluid mt-3" style="max-width:160px;"
+           onerror="this.style.display='none'"/>
+    </div>
+
+    <!-- Right panel -->
+    <div class="col-md-7 bg-white p-5">
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger py-2">
+          <i class="bi bi-exclamation-circle me-1"></i>
+          {{ form.non_field_errors.0 }}
+        </div>
+        {% endif %}
+
+        <div class="mb-4">
+          <label class="form-label fw-500">Email Address</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label fw-500">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="text-end mb-4">
+          <a href="#" class="text-fk small">Forgot password?</a>
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-fk-orange btn-lg fw-600">
+            Login
+          </button>
+        </div>
+
+        <div class="text-center my-3 text-muted small">— OR —</div>
+
+        <div class="d-grid">
+          <a href="{% url 'users:register' %}" class="btn btn-outline-secondary">
+            New to Flipkart? Create Account
+          </a>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

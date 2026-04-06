@@ -1,0 +1,44 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link">
+  <i class="bi bi-grid"></i> Categories
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-5">
+    <div class="chart-card text-center">
+      <i class="bi bi-exclamation-triangle-fill text-danger mb-3"
+         style="font-size:56px;"></i>
+      <h5 class="fw-bold">{{ title }}</h5>
+      <p class="text-muted mb-1">You are about to permanently delete:</p>
+      <p class="fw-bold fs-5 text-danger">{{ object }}</p>
+      <p class="text-muted small">This action cannot be undone.</p>
+
+      <div class="d-flex justify-content-center gap-3 mt-4">
+        <form method="POST">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger px-4">
+            <i class="bi bi-trash me-1"></i>Yes, Delete
+          </button>
+        </form>
+        <a href="{% url back %}" class="btn btn-outline-secondary px-4">
+          Cancel
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

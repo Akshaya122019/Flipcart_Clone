@@ -1,0 +1,123 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Manage Orders{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Manage Orders{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_orders' %}" class="sidebar-link active">
+  <i class="bi bi-bag-check"></i> Orders
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:admin_customers' %}" class="sidebar-link">
+  <i class="bi bi-people"></i> Users
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- Filters -->
+<div class="chart-card mb-4">
+  <form method="GET" class="row g-3 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label small fw-600">Search</label>
+      <input type="text" name="search" class="form-control"
+             placeholder="Order number, email, name..."
+             value="{{ search }}"/>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-600">Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Statuses</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}"
+          {% if status_filter == val %}selected{% endif %}>
+          {{ label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-search me-1"></i>Filter
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Orders table -->
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6>Orders ({{ orders|length }})</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Update</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td class="fw-500 text-primary">{{ order.order_number }}</td>
+          <td>
+            <div class="fw-500">
+              {{ order.user.full_name|default:order.user.username }}
+            </div>
+            <small class="text-muted">{{ order.user.email }}</small>
+          </td>
+          <td class="small text-muted">
+            {{ order.created_at|date:"d M Y" }}<br/>
+            {{ order.created_at|date:"H:i" }}
+          </td>
+          <td class="fw-600">₹{{ order.grand_total|floatformat:0 }}</td>
+          <td>{{ order.get_payment_method_display }}</td>
+          <td>
+            <span class="badge badge-{{ order.status }}">
+              {{ order.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <form action="{% url 'dashboard:admin_order_update' order.id %}"
+                  method="POST" class="d-flex gap-1">
+              {% csrf_token %}
+              <select name="status" class="form-select form-select-sm"
+                      style="width:120px;">
+                {% for val, label in status_choices %}
+                <option value="{{ val }}"
+                  {% if order.status == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+                {% endfor %}
+              </select>
+              <button type="submit"
+                      class="btn btn-sm btn-success">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">
+            No orders found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

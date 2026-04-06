@@ -1,0 +1,115 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link active">
+  <i class="bi bi-grid"></i> Categories
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="chart-card">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-grid text-primary me-2"></i>{{ title }}
+        </h6>
+        <a href="{% url 'dashboard:category_list' %}"
+           class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label fw-500">Category Name *</label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-500">
+            Slug
+            <small class="text-muted fw-normal">(leave blank to auto-generate)</small>
+          </label>
+          {{ form.slug }}
+          {% if form.slug.errors %}
+          <div class="text-danger small mt-1">{{ form.slug.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-500">Parent Category</label>
+          {{ form.parent }}
+          <small class="text-muted">Leave blank for top-level category</small>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-500">Category Image</label>
+          {% if category and category.image %}
+          <div class="mb-2">
+            <img src="{{ category.image.url }}"
+                 style="height:80px;object-fit:contain;border-radius:8px;"
+                 class="border p-1"/>
+          </div>
+          {% endif %}
+          {{ form.image }}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-500">Description</label>
+          {{ form.description }}
+        </div>
+
+        <div class="mb-4">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label fw-500">Active</label>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-save me-1"></i>
+            {% if category %}Update{% else %}Create{% endif %} Category
+          </button>
+          <a href="{% url 'dashboard:category_list' %}"
+             class="btn btn-outline-secondary">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-generate slug from name
+document.getElementById('id_name').addEventListener('input', function () {
+  const slugField = document.getElementById('id_slug');
+  if (!slugField.value) {
+    slugField.value = this.value
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-');
+  }
+});
+</script>
+{% endblock %}

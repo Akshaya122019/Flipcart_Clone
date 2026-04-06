@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block title %}
+  {% if query %}{{ query }} — Search Results{% else %}Search{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Search bar (large) -->
+  <form action="{% url 'products:search' %}" method="GET" class="mb-4">
+    <div class="input-group input-group-lg shadow-sm">
+      <input type="text" name="q" class="form-control"
+             value="{{ query }}" placeholder="Search for products, brands and more..."/>
+      <button class="btn btn-fk-primary" type="submit">
+        <i class="bi bi-search me-1"></i>Search
+      </button>
+    </div>
+  </form>
+
+  {% if query %}
+  <!-- Result header -->
+  <div class="d-flex justify-content-between align-items-center
+              bg-white p-3 rounded-3 shadow-sm mb-3">
+    <div>
+      <span class="fw-500">Results for </span>
+      <strong class="text-fk">"{{ query }}"</strong>
+      <small class="text-muted ms-2">— {{ total }} products found</small>
+    </div>
+    <select class="form-select form-select-sm" id="sort-select" style="width:auto;">
+      <option value="popular"   {% if sort == 'popular'   %}selected{% endif %}>Popularity</option>
+      <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+      <option value="price_desc"{% if sort == 'price_desc'%}selected{% endif %}>Price: High to Low</option>
+      <option value="newest"    {% if sort == 'newest'    %}selected{% endif %}>Newest First</option>
+      <option value="discount"  {% if sort == 'discount'  %}selected{% endif %}>Best Discount</option>
+    </select>
+  </div>
+
+  {% if page_obj %}
+  <div class="row g-3">
+    {% for product in page_obj %}
+    {% include 'products/_product_card.html' %}
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <nav class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if page_obj.has_previous %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ query }}&page={{ page_obj.previous_page_number }}&sort={{ sort }}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+      <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+        <a class="page-link" href="?q={{ query }}&page={{ num }}&sort={{ sort }}">{{ num }}</a>
+      </li>
+      {% endfor %}
+      {% if page_obj.has_next %}
+      <li class="page-item">
+        <a class="page-link" href="?q={{ query }}&page={{ page_obj.next_page_number }}&sort={{ sort }}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-search display-1 text-muted"></i>
+    <h5 class="mt-3 text-muted">No results found for "{{ query }}"</h5>
+    <p class="text-muted">Try different keywords or check the spelling.</p>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-search display-1"></i>
+    <h5 class="mt-3">Search for anything</h5>
+    <p>Enter keywords above to find products.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('#sort-select').on('change', function () {
+  const url = new URL(window.location.href);
+  url.searchParams.set('sort', $(this).val());
+  window.location.href = url.toString();
+});
+</script>
+{% endblock %}

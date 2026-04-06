@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Payment History — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h5 class="section-title">Payment History</h5>
+
+  {% if payments %}
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Order #</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Razorpay ID</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payments %}
+          <tr>
+            <td>
+              <a href="{% url 'orders:detail' p.order.id %}" class="text-fk fw-500">
+                {{ p.order.order_number }}
+              </a>
+            </td>
+            <td>{{ p.created_at|date:"d M Y" }}</td>
+            <td>₹{{ p.amount|floatformat:0 }}</td>
+            <td>{{ p.order.get_payment_method_display }}</td>
+            <td>
+              <span class="text-muted small font-monospace">
+                {{ p.razorpay_payment_id|default:"—" }}
+              </span>
+            </td>
+            <td>
+              <span class="badge
+                {% if p.status == 'success' %}bg-success
+                {% elif p.status == 'failed' %}bg-danger
+                {% elif p.status == 'refunded' %}bg-info
+                {% else %}bg-warning text-dark{% endif %}">
+                {{ p.get_status_display }}
+              </span>
+            </td>
+            <td>
+              {% if p.status == 'failed' %}
+              <a href="{% url 'payments:retry' p.order.id %}"
+                 class="btn btn-sm btn-outline-danger">
+                Retry
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">
+      <i class="bi bi-credit-card display-1"></i>
+      <h5 class="mt-3">No payment records yet</h5>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

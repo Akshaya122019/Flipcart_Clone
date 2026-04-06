@@ -1,0 +1,48 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Seller Profile{% endblock %}
+{% block brand %}🏪 Seller{% endblock %}
+{% block brand_sub %}{{ request.user.full_name|default:request.user.username }}{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:seller_dashboard' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:seller_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> My Products
+</a>
+<a href="{% url 'dashboard:seller_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> My Orders
+</a>
+<a href="{% url 'dashboard:seller_profile' %}" class="sidebar-link active">
+  <i class="bi bi-person-gear"></i> Profile
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="chart-card">
+      <h6 class="fw-bold mb-4">
+        <i class="bi bi-person-gear text-primary me-2"></i>
+        Edit Profile
+      </h6>
+      <form method="POST" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="mb-3">
+          <label class="form-label fw-500">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+          <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="bi bi-save me-1"></i>Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> Orders
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:admin_customers' %}" class="sidebar-link active">
+  <i class="bi bi-people"></i> Users
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="chart-card mb-4">
+  <form method="GET" class="row g-3 align-items-end">
+    <div class="col-md-5">
+      <input type="text" name="search" class="form-control"
+             placeholder="Search by name, email..."
+             value="{{ search }}"/>
+    </div>
+    <div class="col-md-4">
+      <select name="role" class="form-select">
+        <option value="">All Roles</option>
+        <option value="buyer"  {% if role == 'buyer'  %}selected{% endif %}>Buyers</option>
+        <option value="seller" {% if role == 'seller' %}selected{% endif %}>Sellers</option>
+        <option value="admin"  {% if role == 'admin'  %}selected{% endif %}>Admins</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-search me-1"></i>Filter
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6>Users ({{ users|length }})</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Phone</th>
+          <th>Joined</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td>
+            <div class="fw-500">
+              {{ u.full_name|default:u.username }}
+            </div>
+            <small class="text-muted">{{ u.email }}</small>
+          </td>
+          <td>
+            <span class="badge
+              {% if u.role == 'seller' %}bg-warning text-dark
+              {% elif u.role == 'admin' %}bg-danger
+              {% else %}bg-primary{% endif %}">
+              {{ u.get_role_display }}
+            </span>
+          </td>
+          <td class="small text-muted">{{ u.phone|default:"—" }}</td>
+          <td class="small text-muted">
+            {{ u.date_joined|date:"d M Y" }}
+          </td>
+          <td>
+            {% if u.is_active %}
+            <span class="badge bg-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if u != request.user %}
+            <form action="{% url 'dashboard:admin_user_toggle' u.id %}"
+                  method="POST">
+              {% csrf_token %}
+              <button type="submit"
+                      class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+              </button>
+            </form>
+            {% else %}
+            <span class="text-muted small">You</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center py-4 text-muted">
+            No users found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

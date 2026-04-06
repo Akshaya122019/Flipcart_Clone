@@ -1,0 +1,414 @@
+{% extends 'dashboard/_base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block sidebar_links %}
+<span class="sidebar-section">Overview</span>
+<a href="{% url 'dashboard:admin' %}"
+   class="sidebar-link {% if request.resolver_match.url_name == 'admin' %}active{% endif %}">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+
+<span class="sidebar-section">Management</span>
+<a href="{% url 'dashboard:admin_orders' %}"
+   class="sidebar-link {% if 'orders' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-bag-check"></i> Orders
+  {% if pending_orders %}
+  <span class="badge bg-danger ms-auto">{{ pending_orders }}</span>
+  {% endif %}
+</a>
+<a href="{% url 'dashboard:admin_products' %}"
+   class="sidebar-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:admin_customers' %}"
+   class="sidebar-link {% if 'customers' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-people"></i> Users
+</a>
+<a href="/admin/" class="sidebar-link">
+  <i class="bi bi-gear"></i> Django Admin
+</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── KPI Row 1: Revenue ── -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#e8f5e9;">
+        <i class="bi bi-currency-rupee text-success"></i>
+      </div>
+      <div>
+        <div class="kpi-value">₹{{ total_revenue|floatformat:0 }}</div>
+        <div class="kpi-label">Total Revenue</div>
+        <div class="kpi-sub text-success">
+          <i class="bi bi-arrow-up-short"></i>
+          ₹{{ month_revenue|floatformat:0 }} this month
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#e3f2fd;">
+        <i class="bi bi-bag-check text-primary"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ total_orders }}</div>
+        <div class="kpi-label">Total Orders</div>
+        <div class="kpi-sub text-warning">
+          {{ pending_orders }} pending
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#fce4ec;">
+        <i class="bi bi-people text-danger"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ total_customers }}</div>
+        <div class="kpi-label">Total Customers</div>
+        <div class="kpi-sub text-success">
+          +{{ new_customers }} last 30 days
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-xl-3">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#fff8e1;">
+        <i class="bi bi-box-seam text-warning"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ total_products }}</div>
+        <div class="kpi-label">Active Products</div>
+        <div class="kpi-sub text-danger">
+          {{ low_stock }} low stock
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── KPI Row 2: Quick stats ── -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-4">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#f3e5f5;">
+        <i class="bi bi-shop text-purple" style="color:#7b1fa2;"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ total_sellers }}</div>
+        <div class="kpi-label">Active Sellers</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#e8f5e9;">
+        <i class="bi bi-calendar-check text-success"></i>
+      </div>
+      <div>
+        <div class="kpi-value">{{ today_orders }}</div>
+        <div class="kpi-label">Today's Orders</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="kpi-card">
+      <div class="kpi-icon" style="background:#e3f2fd;">
+        <i class="bi bi-cash-stack text-primary"></i>
+      </div>
+      <div>
+        <div class="kpi-value">₹{{ today_revenue|floatformat:0 }}</div>
+        <div class="kpi-label">Today's Revenue</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charts row ── -->
+<div class="row g-4 mb-4">
+
+  <!-- Revenue chart -->
+  <div class="col-lg-8">
+    <div class="chart-card">
+      <div class="chart-title">
+        <i class="bi bi-graph-up-arrow text-primary me-2"></i>
+        Revenue — Last 30 Days
+      </div>
+      <canvas id="revenueChart" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- Order status donut -->
+  <div class="col-lg-4">
+    <div class="chart-card">
+      <div class="chart-title">
+        <i class="bi bi-pie-chart text-warning me-2"></i>
+        Order Status Breakdown
+      </div>
+      <canvas id="statusChart" height="200"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<!-- Orders chart -->
+<div class="row g-4 mb-4">
+  <div class="col-12">
+    <div class="chart-card">
+      <div class="chart-title">
+        <i class="bi bi-bar-chart text-success me-2"></i>
+        Daily Orders — Last 30 Days
+      </div>
+      <canvas id="ordersChart" height="70"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ── Tables row ── -->
+<div class="row g-4 mb-4">
+
+  <!-- Top products -->
+  <div class="col-lg-6">
+    <div class="dash-table">
+      <div class="dash-table-header">
+        <h6><i class="bi bi-trophy text-warning me-2"></i>Top Products</h6>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Product</th>
+            <th>Sold</th>
+            <th>Revenue</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in top_products %}
+          <tr>
+            <td class="text-muted">{{ forloop.counter }}</td>
+            <td class="fw-500">
+              {{ p.product__name|truncatechars:30 }}
+            </td>
+            <td>{{ p.total_sold }}</td>
+            <td>₹{{ p.revenue|floatformat:0 }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">
+              No sales data yet
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent users -->
+  <div class="col-lg-6">
+    <div class="dash-table">
+      <div class="dash-table-header">
+        <h6><i class="bi bi-person-plus text-primary me-2"></i>Recent Users</h6>
+        <a href="{% url 'dashboard:admin_customers' %}"
+           class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <table class="table">
+        <thead>
+          <tr><th>User</th><th>Role</th><th>Joined</th></tr>
+        </thead>
+        <tbody>
+          {% for u in recent_users %}
+          <tr>
+            <td>
+              <div class="fw-500">
+                {{ u.full_name|default:u.username }}
+              </div>
+              <small class="text-muted">{{ u.email }}</small>
+            </td>
+            <td>
+              <span class="badge
+                {% if u.role == 'seller' %}bg-warning text-dark
+                {% elif u.role == 'admin' %}bg-danger
+                {% else %}bg-primary{% endif %}">
+                {{ u.get_role_display }}
+              </span>
+            </td>
+            <td class="text-muted small">
+              {{ u.date_joined|date:"d M Y" }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Recent orders -->
+<div class="dash-table mb-4">
+  <div class="dash-table-header">
+    <h6><i class="bi bi-clock-history text-info me-2"></i>Recent Orders</h6>
+    <a href="{% url 'dashboard:admin_orders' %}"
+       class="btn btn-sm btn-outline-primary">View All</a>
+  </div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Items</th>
+          <th>Total</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in recent_orders %}
+        <tr>
+          <td class="fw-500 text-primary">{{ order.order_number }}</td>
+          <td>
+            <div>{{ order.user.full_name|default:order.user.username }}</div>
+            <small class="text-muted">{{ order.user.email }}</small>
+          </td>
+          <td class="text-muted small">
+            {{ order.created_at|date:"d M Y H:i" }}
+          </td>
+          <td>{{ order.items.count }}</td>
+          <td class="fw-500">₹{{ order.grand_total|floatformat:0 }}</td>
+          <td>{{ order.get_payment_method_display }}</td>
+          <td>
+            <span class="badge badge-{{ order.status }}">
+              {{ order.get_status_display }}
+            </span>
+          </td>
+          <td>
+            <form action="{% url 'dashboard:admin_order_update' order.id %}"
+                  method="POST" class="d-flex gap-1">
+              {% csrf_token %}
+              <select name="status" class="form-select form-select-sm"
+                      style="width:110px;">
+                {% for val, label in status_choices %}
+                <option value="{{ val }}"
+                  {% if order.status == val %}selected{% endif %}>
+                  {{ label }}
+                </option>
+                {% endfor %}
+              </select>
+              <button type="submit"
+                      class="btn btn-sm btn-primary">✓</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-3">
+            No orders yet
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const labels  = {{ chart_labels|safe }};
+const revenue = {{ chart_revenue|safe }};
+const orders  = {{ chart_orders|safe }};
+const sLabels = {{ status_labels|safe }};
+const sCounts = {{ status_counts|safe }};
+
+// Revenue line chart
+new Chart(document.getElementById('revenueChart'), {
+  type: 'line',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Revenue (₹)',
+      data: revenue,
+      borderColor: '#2874f0',
+      backgroundColor: 'rgba(40,116,240,.08)',
+      borderWidth: 2,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+      pointHoverRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: v => '₹' + v.toLocaleString('en-IN')
+        }
+      },
+      x: { ticks: { maxTicksLimit: 10 } }
+    }
+  }
+});
+
+// Orders bar chart
+new Chart(document.getElementById('ordersChart'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Orders',
+      data: orders,
+      backgroundColor: 'rgba(56,142,60,.7)',
+      borderRadius: 4,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 } },
+      x: { ticks: { maxTicksLimit: 10 } }
+    }
+  }
+});
+
+// Status donut
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: sLabels,
+    datasets: [{
+      data: sCounts,
+      backgroundColor: [
+        '#2874f0','#388e3c','#f57f17',
+        '#0288d1','#c62828','#7b1fa2','#e65100'
+      ],
+      borderWidth: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 } } }
+    },
+    cutout: '65%',
+  }
+});
+</script>
+{% endblock %}

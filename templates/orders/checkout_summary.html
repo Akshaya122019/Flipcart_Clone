@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block title %}Order Summary — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Step indicator -->
+  <div class="checkout-steps mb-4">
+    <div class="step done">
+      <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+      <span>Address</span>
+    </div>
+    <div class="step-line active"></div>
+    <div class="step active">
+      <div class="step-circle">2</div>
+      <span>Summary</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <span>Payment</span>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- ── Left: Items + Payment method ── -->
+    <div class="col-lg-8">
+
+      <!-- Delivery address -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom d-flex
+                    justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-geo-alt-fill text-success me-2"></i>
+            Delivery Address
+          </h6>
+          <a href="{% url 'orders:checkout' %}"
+             class="btn btn-sm btn-outline-secondary">Change</a>
+        </div>
+        <div class="card-body">
+          <strong>{{ address.full_name }}</strong>
+          <span class="badge bg-secondary ms-1">{{ address.get_address_type_display }}</span>
+          <p class="mb-0 text-muted mt-1">
+            {{ address.line1 }}{% if address.line2 %}, {{ address.line2 }}{% endif %}<br/>
+            {{ address.city }}, {{ address.state }} — {{ address.pincode }}<br/>
+            <i class="bi bi-telephone me-1"></i>{{ address.phone }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Order items -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-bag me-2 text-fk"></i>
+            Order Items ({{ items|length }})
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          {% for item in items %}
+          <div class="d-flex gap-3 align-items-center p-3 border-bottom">
+            <div style="width:70px;height:70px;flex-shrink:0;">
+              {% if item.product.primary_image %}
+              <img src="{{ item.product.primary_image.image.url }}"
+                   alt="{{ item.product.name }}"
+                   class="img-fluid rounded"
+                   style="width:70px;height:70px;object-fit:contain;"/>
+              {% endif %}
+            </div>
+            <div class="flex-grow-1">
+              <p class="fw-500 mb-0">{{ item.product.name }}</p>
+              {% if item.variant %}
+              <small class="text-muted">
+                {{ item.variant.name }}: {{ item.variant.value }}
+              </small>
+              {% endif %}
+              <div class="d-flex gap-3 mt-1">
+                <small class="text-muted">Qty: {{ item.quantity }}</small>
+                <small class="text-success">
+                  {{ item.product.discount }}% off
+                </small>
+              </div>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold">₹{{ item.subtotal|floatformat:0 }}</div>
+              {% if item.product.discount %}
+              <small class="text-muted text-decoration-line-through">
+                ₹{{ item.product.price|floatformat:0 }}
+              </small>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Payment method -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-credit-card me-2 text-fk"></i>
+            Choose Payment Method
+          </h6>
+        </div>
+        <div class="card-body">
+          <form method="POST" id="place-order-form">
+            {% csrf_token %}
+
+            <!-- Razorpay -->
+            <label class="payment-option mb-3" for="pay-razorpay">
+              <input type="radio" name="payment_method"
+                     id="pay-razorpay" value="razorpay" checked/>
+              <div class="payment-option-body">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="payment-icon bg-blue-subtle rounded p-2">
+                    <i class="bi bi-credit-card-2-front fs-4 text-primary"></i>
+                  </div>
+                  <div>
+                    <strong>Razorpay</strong>
+                    <p class="mb-0 small text-muted">
+                      UPI, Cards, Net Banking, Wallets
+                    </p>
+                  </div>
+                  <span class="badge bg-success ms-auto">Recommended</span>
+                </div>
+              </div>
+            </label>
+
+            <!-- COD -->
+            <label class="payment-option" for="pay-cod">
+              <input type="radio" name="payment_method"
+                     id="pay-cod" value="cod"/>
+              <div class="payment-option-body">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="payment-icon bg-warning-subtle rounded p-2">
+                    <i class="bi bi-cash-stack fs-4 text-warning"></i>
+                  </div>
+                  <div>
+                    <strong>Cash on Delivery</strong>
+                    <p class="mb-0 small text-muted">
+                      Pay when you receive your order
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </label>
+
+            <div class="mt-4 d-grid">
+              <button type="submit" class="btn btn-fk-orange btn-lg fw-600">
+                <i class="bi bi-bag-check me-1"></i>
+                Place Order — ₹{{ grand_total|floatformat:0 }}
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── Right: Price breakdown ── -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0 text-muted fw-600 text-uppercase"
+              style="font-size:12px;letter-spacing:1px;">
+            Price Details
+          </h6>
+        </div>
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Price ({{ items|length }} items)</span>
+            <span>₹{{ subtotal|floatformat:0 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2 text-success">
+            <span>Discount</span>
+            <span>— ₹0</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span>Delivery Charges</span>
+            {% if shipping_cost == 0 %}
+            <span class="text-success fw-500">FREE</span>
+            {% else %}
+            <span>₹{{ shipping_cost }}</span>
+            {% endif %}
+          </div>
+
+          <hr/>
+
+          <div class="d-flex justify-content-between fw-bold fs-6 mb-3">
+            <span>Total Amount</span>
+            <span>₹{{ grand_total|floatformat:0 }}</span>
+          </div>
+
+          <div class="text-success small fw-500">
+            <i class="bi bi-shield-fill-check me-1"></i>
+            Safe and Secure Payments
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

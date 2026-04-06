@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+{% block title %}Shopping Cart — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <h5 class="section-title">
+    My Cart
+    <span class="badge bg-secondary ms-2 fs-6">{{ cart.total_items }} item{{ cart.total_items|pluralize }}</span>
+  </h5>
+
+  {% if items %}
+  <div class="row g-4">
+
+    <!-- ── Cart items ── -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm">
+
+        <!-- Delivery address bar -->
+        <div class="card-header bg-white border-bottom d-flex
+                    justify-content-between align-items-center py-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-geo-alt-fill text-fk"></i>
+            <span class="small">Deliver to:
+              <strong>{{ request.user.full_name|default:request.user.username }}</strong>
+            </span>
+          </div>
+          <a href="{% url 'orders:checkout' %}" class="btn btn-sm btn-outline-primary">
+            Change
+          </a>
+        </div>
+
+        <!-- Items list -->
+        <div class="card-body p-0">
+          {% for item in items %}
+          <div class="cart-row p-3 border-bottom" id="cart-row-{{ item.id }}">
+            <div class="row align-items-center g-3">
+
+              <!-- Image -->
+              <div class="col-auto">
+                <a href="{% url 'products:detail' item.product.slug %}">
+                  <div style="width:90px;height:90px;">
+                    {% if item.product.primary_image %}
+                    <img src="{{ item.product.primary_image.image.url }}"
+                         alt="{{ item.product.name }}"
+                         class="img-fluid rounded"
+                         style="width:90px;height:90px;object-fit:contain;"/>
+                    {% else %}
+                    <img src="https://placehold.co/90x90?text=No+Img"
+                         class="img-fluid rounded" alt=""/>
+                    {% endif %}
+                  </div>
+                </a>
+              </div>
+
+              <!-- Details -->
+              <div class="col">
+                <a href="{% url 'products:detail' item.product.slug %}"
+                   class="fw-500 text-dark d-block mb-1"
+                   style="font-size:14px;">
+                  {{ item.product.name }}
+                </a>
+                {% if item.variant %}
+                <small class="text-muted">
+                  {{ item.variant.name }}: {{ item.variant.value }}
+                </small>
+                {% endif %}
+                <div class="mt-1">
+                  <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-check-circle me-1"></i>In Stock
+                  </span>
+                </div>
+                <small class="text-muted d-block mt-1">
+                  Seller: {{ item.product.seller.full_name|default:item.product.seller.username }}
+                </small>
+              </div>
+
+              <!-- Price + Qty + Actions -->
+              <div class="col-md-auto text-md-end">
+
+                <!-- Price -->
+                <div class="mb-2">
+                  <span class="fw-bold fs-5" id="subtotal-{{ item.id }}">
+                    ₹{{ item.subtotal|floatformat:0 }}
+                  </span>
+                  {% if item.product.discount %}
+                  <small class="text-muted text-decoration-line-through ms-1">
+                    ₹{{ item.product.price|floatformat:0 }}
+                  </small>
+                  <small class="text-success ms-1">
+                    {{ item.product.discount }}% off
+                  </small>
+                  {% endif %}
+                </div>
+
+                <!-- Quantity controls -->
+                <div class="d-flex align-items-center gap-2 justify-content-md-end">
+                  <button class="btn btn-sm btn-outline-secondary btn-qty"
+                          style="width:30px;height:30px;padding:0;"
+                          data-action="decrease"
+                          data-item="{{ item.id }}"
+                          data-url="{% url 'cart:update' %}">
+                    <i class="bi bi-dash"></i>
+                  </button>
+                  <span class="fw-bold" id="qty-{{ item.id }}"
+                        style="min-width:24px;text-align:center;">
+                    {{ item.quantity }}
+                  </span>
+                  <button class="btn btn-sm btn-outline-secondary btn-qty"
+                          style="width:30px;height:30px;padding:0;"
+                          data-action="increase"
+                          data-item="{{ item.id }}"
+                          data-url="{% url 'cart:update' %}">
+                    <i class="bi bi-plus"></i>
+                  </button>
+                </div>
+
+                <!-- Remove / Save -->
+                <div class="d-flex gap-3 justify-content-md-end mt-2">
+                  <button class="btn btn-link btn-sm text-muted p-0 btn-remove-cart"
+                          data-item="{{ item.id }}"
+                          data-url="{% url 'cart:remove' %}">
+                    <i class="bi bi-trash me-1"></i>Remove
+                  </button>
+                  <button class="btn btn-link btn-sm text-fk p-0 btn-wishlist"
+                          data-url="{% url 'cart:wishlist_toggle' item.product.id %}">
+                    <i class="bi bi-heart me-1"></i>Wishlist
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Cart footer -->
+        <div class="card-footer bg-white d-flex
+                    justify-content-between align-items-center py-3">
+          <form action="{% url 'cart:clear' %}" method="POST"
+                onsubmit="return confirm('Clear entire cart?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="bi bi-trash me-1"></i>Clear Cart
+            </button>
+          </form>
+          <a href="{% url 'orders:checkout' %}" class="btn btn-fk-orange px-5">
+            Place Order
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Price summary ── -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm sticky-top" style="top:80px;">
+        <div class="card-header bg-white border-bottom">
+          <h6 class="mb-0 text-muted fw-600 text-uppercase"
+              style="font-size:12px;letter-spacing:1px;">
+            Price Details
+          </h6>
+        </div>
+        <div class="card-body">
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Price ({{ cart.total_items }} item{{ cart.total_items|pluralize }})</span>
+            <span>₹<span id="cart-total">{{ cart.total_price|floatformat:0 }}</span></span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2 text-success">
+            <span>Discount</span>
+            <span>
+              — ₹{% with total=cart.total_price %}
+                {% for item in items %}{% endfor %}
+              {% endwith %}
+              0
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Delivery Charges</span>
+            <span class="text-success fw-500">
+              <span class="text-decoration-line-through text-muted me-1">₹40</span>
+              FREE
+            </span>
+          </div>
+
+          <hr/>
+
+          <div class="d-flex justify-content-between fw-bold fs-6 mb-3">
+            <span>Total Amount</span>
+            <span>₹<span id="cart-grand-total">{{ cart.total_price|floatformat:0 }}</span></span>
+          </div>
+
+          <div class="text-success small mb-3 fw-500">
+            <i class="bi bi-tag-fill me-1"></i>
+            You save ₹0 on this order
+          </div>
+
+          <div class="d-grid">
+            <a href="{% url 'orders:checkout' %}"
+               class="btn btn-fk-orange btn-lg fw-600">
+              <i class="bi bi-bag-check me-1"></i>Proceed to Checkout
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Safe pay badge -->
+        <div class="card-footer bg-light text-center py-2">
+          <small class="text-muted">
+            <i class="bi bi-shield-fill-check text-success me-1"></i>
+            Safe and Secure Payments. Easy returns.
+          </small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {% else %}
+
+  <!-- Empty cart -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+      <img src="https://rukminim2.flixcart.com/www/800/800/promos/16/05/2019/d438a32e-765a-4d8b-b4a6-520b560971e8.png"
+           alt="Empty Cart" style="max-width:220px;" class="mb-4"
+           onerror="this.src='https://placehold.co/220x180?text=Empty+Cart'"/>
+      <h4 class="fw-bold">Your cart is empty!</h4>
+      <p class="text-muted">Add items to it now.</p>
+      <a href="{% url 'products:home' %}" class="btn btn-fk-primary px-5 mt-2">
+        <i class="bi bi-shop me-1"></i>Shop Now
+      </a>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+
+  // Override the global cart update to also refresh grand total
+  $(document).on('click', '.btn-qty', function () {
+    const btn    = $(this);
+    const action = btn.data('action');
+    const itemId = btn.data('item');
+    const url    = btn.data('url');
+
+    $.post(url, { action: action, item_id: itemId }, function (res) {
+      if (res.success) {
+        if (res.quantity === 0) {
+          $(`#cart-row-${itemId}`).fadeOut(300, function () {
+            $(this).remove();
+            if ($('.cart-row').length === 0) location.reload();
+          });
+        } else {
+          $(`#qty-${itemId}`).text(res.quantity);
+          $(`#subtotal-${itemId}`).text('₹' + parseInt(res.subtotal).toLocaleString('en-IN'));
+        }
+        const total = parseInt(res.total).toLocaleString('en-IN');
+        $('#cart-total').text(total);
+        $('#cart-grand-total').text(total);
+        $('#cart-badge').text(res.cart_count);
+      } else {
+        showToast(res.message || 'Error updating cart.', 'warning');
+      }
+    });
+  });
+
+});
+</script>
+{% endblock %}

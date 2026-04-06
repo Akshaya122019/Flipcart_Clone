@@ -1,0 +1,101 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Categories{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Categories{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> Orders
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link active">
+  <i class="bi bi-grid"></i> Categories
+</a>
+<a href="{% url 'dashboard:admin_customers' %}" class="sidebar-link">
+  <i class="bi bi-people"></i> Users
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6><i class="bi bi-grid me-2 text-primary"></i>All Categories ({{ categories|length }})</h6>
+    <a href="{% url 'dashboard:category_add' %}" class="btn btn-success btn-sm">
+      <i class="bi bi-plus-lg me-1"></i>Add Category
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Parent</th>
+          <th>Slug</th>
+          <th>Products</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td>
+            {% if cat.image %}
+            <img src="{{ cat.image.url }}"
+                 style="width:44px;height:44px;object-fit:contain;border-radius:6px;"/>
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center
+                        justify-content-center"
+                 style="width:44px;height:44px;">
+              <i class="bi bi-image text-muted"></i>
+            </div>
+            {% endif %}
+          </td>
+          <td class="fw-500">{{ cat.name }}</td>
+          <td class="text-muted small">
+            {{ cat.parent.name|default:"— Root" }}
+          </td>
+          <td>
+            <code class="small">{{ cat.slug }}</code>
+          </td>
+          <td>{{ cat.products.count }}</td>
+          <td>
+            {% if cat.is_active %}
+            <span class="badge bg-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'dashboard:category_edit' cat.pk %}"
+                 class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="{% url 'dashboard:category_delete' cat.pk %}"
+                 class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-4 text-muted">
+            No categories yet.
+            <a href="{% url 'dashboard:category_add' %}">Add one now</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}My Orders{% endblock %}
+{% block brand %}🏪 Seller{% endblock %}
+{% block brand_sub %}{{ request.user.full_name|default:request.user.username }}{% endblock %}
+{% block page_title %}My Orders{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:seller_dashboard' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:seller_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> My Products
+</a>
+<a href="{% url 'dashboard:seller_orders' %}" class="sidebar-link active">
+  <i class="bi bi-bag-check"></i> My Orders
+</a>
+<a href="{% url 'dashboard:seller_profile' %}" class="sidebar-link">
+  <i class="bi bi-person-gear"></i> Profile
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="chart-card mb-4">
+  <form method="GET" class="d-flex gap-3 align-items-end">
+    <div>
+      <label class="form-label small fw-600">Filter by Status</label>
+      <select name="status" class="form-select">
+        <option value="">All Orders</option>
+        {% for val, label in status_choices %}
+        <option value="{{ val }}"
+          {% if status_filter == val %}selected{% endif %}>
+          {{ label }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Apply</button>
+    {% if status_filter %}
+    <a href="{% url 'dashboard:seller_orders' %}"
+       class="btn btn-outline-secondary">Clear</a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6>Order Items ({{ order_items|length }})</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Product</th>
+          <th>Customer</th>
+          <th>Address</th>
+          <th>Qty</th>
+          <th>Subtotal</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order_items %}
+        <tr>
+          <td class="fw-500 text-primary small">
+            {{ item.order.order_number }}
+          </td>
+          <td class="small">
+            <div class="fw-500">{{ item.product.name|truncatechars:25 }}</div>
+          </td>
+          <td class="small">
+            {{ item.order.user.full_name|default:item.order.user.username }}<br/>
+            <span class="text-muted">{{ item.order.user.phone|default:"" }}</span>
+          </td>
+          <td class="small text-muted">
+            {% if item.order.address %}
+            {{ item.order.address.city }},
+            {{ item.order.address.state }}
+            {% endif %}
+          </td>
+          <td>{{ item.quantity }}</td>
+          <td class="fw-500">₹{{ item.subtotal|floatformat:0 }}</td>
+          <td class="small text-muted">
+            {{ item.order.created_at|date:"d M Y" }}
+          </td>
+          <td>
+            <span class="badge badge-{{ item.order.status }}">
+              {{ item.order.get_status_display }}
+            </span>
+          </td>
+          <td>
+            {% if item.order.status == 'confirmed' %}
+            <form action="{% url 'dashboard:seller_dispatch' item.order.id %}"
+                  method="POST">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-success">
+                <i class="bi bi-truck me-1"></i>Dispatch
+              </button>
+            </form>
+            {% else %}
+            <span class="text-muted small">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9" class="text-center py-4 text-muted">
+            No orders found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

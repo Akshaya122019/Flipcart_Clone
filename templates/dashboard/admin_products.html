@@ -1,0 +1,140 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Manage Products{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Manage Products{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> Orders
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:admin_customers' %}" class="sidebar-link">
+  <i class="bi bi-people"></i> Users
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="chart-card mb-4">
+  <form method="GET" class="row g-3 align-items-end">
+    <div class="col-md-5">
+      <input type="text" name="search" class="form-control"
+             placeholder="Product name or brand..."
+             value="{{ search }}"/>
+    </div>
+    <div class="col-md-4">
+      <select name="category" class="form-select">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.id }}"
+          {% if cat_filter == cat.id|stringformat:"s" %}selected{% endif %}>
+          {{ cat.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary w-100">
+        <i class="bi bi-search me-1"></i>Filter
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6>Products ({{ products|length }})</h6>
+    <a href="{% url 'dashboard:product_add' %}"
+       class="btn btn-sm btn-success">
+      <i class="bi bi-plus-lg me-1"></i>Add Product
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Category</th>
+          <th>Seller</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>
+            {% if p.primary_image %}
+            <img src="{{ p.primary_image.image.url }}"
+                 style="width:48px;height:48px;object-fit:contain;border-radius:6px;"/>
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center
+                        justify-content-center"
+                 style="width:48px;height:48px;">
+              <i class="bi bi-image text-muted"></i>
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <div class="fw-500">{{ p.name|truncatechars:35 }}</div>
+            <small class="text-muted">{{ p.brand }}</small>
+          </td>
+          <td class="small">{{ p.category.name|default:"—" }}</td>
+          <td class="small">
+            {{ p.seller.full_name|default:p.seller.username }}
+          </td>
+          <td>
+            <div class="fw-500">₹{{ p.discounted_price|floatformat:0 }}</div>
+            {% if p.discount %}
+            <small class="text-success">{{ p.discount }}% off</small>
+            {% endif %}
+          </td>
+          <td>
+            <span class="{% if p.stock <= 5 %}text-danger fw-bold{% endif %}">
+              {{ p.stock }}
+            </span>
+          </td>
+          <td>
+            {% if p.is_active %}
+            <span class="badge bg-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'dashboard:product_edit' p.id %}"
+                 class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form action="{% url 'dashboard:admin_product_toggle' p.id %}"
+                    method="POST">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-sm {% if p.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                  <i class="bi bi-{% if p.is_active %}eye-slash{% else %}eye{% endif %}"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" class="text-center py-4 text-muted">
+            No products found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

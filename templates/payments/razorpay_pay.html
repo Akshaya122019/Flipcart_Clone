@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}Pay ₹{{ order.grand_total }} — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+
+      <!-- Payment card -->
+      <div class="card border-0 shadow-sm">
+
+        <!-- Header -->
+        <div class="card-header bg-fk text-white text-center py-4">
+          <h5 class="mb-0 fw-bold">
+            <i class="bi bi-shield-lock me-2"></i>Secure Payment
+          </h5>
+          <p class="mb-0 opacity-75 small mt-1">
+            Powered by Razorpay
+          </p>
+        </div>
+
+        <div class="card-body p-4">
+
+          <!-- Order summary -->
+          <div class="bg-light rounded p-3 mb-4">
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Order Number</span>
+              <strong class="text-fk">{{ order.order_number }}</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Items</span>
+              <span>{{ order.items.count }} item{{ order.items.count|pluralize }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Subtotal</span>
+              <span>₹{{ order.total_price|floatformat:0 }}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span class="text-muted">Delivery</span>
+              {% if order.shipping_cost == 0 %}
+              <span class="text-success fw-500">FREE</span>
+              {% else %}
+              <span>₹{{ order.shipping_cost|floatformat:0 }}</span>
+              {% endif %}
+            </div>
+            <hr class="my-2"/>
+            <div class="d-flex justify-content-between fw-bold fs-5">
+              <span>Total Amount</span>
+              <span class="text-fk">₹{{ order.grand_total|floatformat:0 }}</span>
+            </div>
+          </div>
+
+          <!-- Delivery address -->
+          {% if order.address %}
+          <div class="mb-4">
+            <p class="fw-600 small mb-1">
+              <i class="bi bi-geo-alt-fill text-fk me-1"></i>
+              Delivering to:
+            </p>
+            <p class="text-muted small mb-0">
+              {{ order.address.full_name }},
+              {{ order.address.city }},
+              {{ order.address.state }} — {{ order.address.pincode }}
+            </p>
+          </div>
+          {% endif %}
+
+          <!-- Pay button -->
+          <div class="d-grid mb-3">
+            <button id="pay-btn" class="btn btn-fk-orange btn-lg fw-600">
+              <i class="bi bi-credit-card me-2"></i>
+              Pay ₹{{ order.grand_total|floatformat:0 }} Now
+            </button>
+          </div>
+
+          <!-- Loading state -->
+          <div id="pay-loading" class="text-center d-none">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <p class="text-muted small">Processing your payment...</p>
+          </div>
+
+          <!-- Error display -->
+          <div id="pay-error" class="alert alert-danger d-none py-2"></div>
+
+          <!-- Trust badges -->
+          <div class="d-flex justify-content-center gap-4 mt-4 text-muted">
+            <div class="text-center">
+              <i class="bi bi-shield-fill-check fs-4 text-success d-block mb-1"></i>
+              <small>100% Secure</small>
+            </div>
+            <div class="text-center">
+              <i class="bi bi-lock-fill fs-4 text-primary d-block mb-1"></i>
+              <small>SSL Encrypted</small>
+            </div>
+            <div class="text-center">
+              <i class="bi bi-arrow-return-left fs-4 text-warning d-block mb-1"></i>
+              <small>Easy Refunds</small>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="card-footer bg-light text-center py-2">
+          <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            Having trouble?
+            <a href="{% url 'orders:detail' order.id %}" class="text-fk">
+              View Order
+            </a>
+            or
+            <a href="{% url 'products:home' %}" class="text-fk">
+              Go Home
+            </a>
+          </small>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay checkout script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+document.getElementById('pay-btn').addEventListener('click', function () {
+
+  const btn     = document.getElementById('pay-btn');
+  const loading = document.getElementById('pay-loading');
+  const errorEl = document.getElementById('pay-error');
+
+  btn.classList.add('d-none');
+  loading.classList.remove('d-none');
+  errorEl.classList.add('d-none');
+
+  // Razorpay options
+  const options = {
+    key:         '{{ razorpay_key }}',
+    amount:      '{{ amount_paise }}',
+    currency:    'INR',
+    name:        'Flipkart Clone',
+    description: 'Order #{{ order.order_number }}',
+    order_id:    '{{ razorpay_order_id }}',
+    image:       '',   // add your logo URL here
+    prefill: {
+      name:    '{{ user_name }}',
+      email:   '{{ user_email }}',
+      contact: '{{ user_phone }}',
+    },
+    notes: {
+      order_number: '{{ order.order_number }}',
+    },
+    theme: {
+      color: '#2874f0',
+    },
+
+    // ── Success handler ──
+    handler: function (response) {
+      loading.innerHTML = `
+        <div class="spinner-border text-success mb-2"></div>
+        <p class="text-muted small">Verifying payment...</p>`;
+
+      fetch('{% url "payments:razorpay_verify" %}', {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken':  '{{ csrf_token }}',
+        },
+        body: JSON.stringify({
+          razorpay_order_id:   response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature:  response.razorpay_signature,
+        }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          loading.innerHTML = `
+            <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-2"></i>
+            <p class="fw-bold text-success">Payment Successful!</p>
+            <p class="text-muted small">Redirecting to your order...</p>`;
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 1500);
+        } else {
+          showError(data.message || 'Verification failed.');
+        }
+      })
+      .catch(() => {
+        showError('Network error. Please check your order status.');
+      });
+    },
+
+    // ── Modal closed / dismissed ──
+    modal: {
+      ondismiss: function () {
+        btn.classList.remove('d-none');
+        loading.classList.add('d-none');
+        showError(
+          'Payment cancelled. ' +
+          '<a href="{% url "payments:retry" order.id %}">Try again</a> or ' +
+          '<a href="{% url "orders:detail" order.id %}">view your order</a>.'
+        );
+      }
+    }
+  };
+
+  const rzp = new Razorpay(options);
+
+  // ── Payment failed inside modal ──
+  rzp.on('payment.failed', function (response) {
+    btn.classList.remove('d-none');
+    loading.classList.add('d-none');
+
+    // Mark payment as failed
+    fetch('{% url "payments:razorpay_verify" %}', {
+      method:  'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken':  '{{ csrf_token }}',
+      },
+      body: JSON.stringify({
+        razorpay_order_id:   response.error.metadata.order_id,
+        razorpay_payment_id: response.error.metadata.payment_id,
+        razorpay_signature:  '',
+        failed:              true,
+      }),
+    });
+
+    showError(
+      `Payment failed: ${response.error.description}. ` +
+      `<a href="{% url "payments:retry" order.id %}">Retry payment</a>`
+    );
+  });
+
+  rzp.open();
+
+  function showError(msg) {
+    errorEl.innerHTML = `<i class="bi bi-x-circle me-1"></i>${msg}`;
+    errorEl.classList.remove('d-none');
+    loading.classList.add('d-none');
+  }
+
+});
+</script>
+{% endblock %}

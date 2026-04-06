@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block title %}My Orders — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h5 class="section-title">My Orders</h5>
+
+  {% if orders %}
+  {% for order in orders %}
+  <div class="card border-0 shadow-sm mb-3">
+
+    <!-- Order header -->
+    <div class="card-header bg-white border-bottom d-flex
+                flex-wrap justify-content-between align-items-center gap-2 py-3">
+      <div class="d-flex gap-4 flex-wrap">
+        <div>
+          <small class="text-muted d-block">Order Number</small>
+          <strong class="text-fk">{{ order.order_number }}</strong>
+        </div>
+        <div>
+          <small class="text-muted d-block">Placed on</small>
+          <strong>{{ order.created_at|date:"d M Y" }}</strong>
+        </div>
+        <div>
+          <small class="text-muted d-block">Total</small>
+          <strong>₹{{ order.grand_total|floatformat:0 }}</strong>
+        </div>
+        <div>
+          <small class="text-muted d-block">Payment</small>
+          <strong>{{ order.get_payment_method_display }}</strong>
+        </div>
+      </div>
+      <div class="d-flex gap-2 align-items-center">
+        <span class="badge fs-6
+          {% if order.status == 'delivered' %}bg-success
+          {% elif order.status == 'cancelled' %}bg-danger
+          {% elif order.status == 'shipped' %}bg-info
+          {% elif order.status == 'processing' %}bg-warning text-dark
+          {% elif order.status == 'confirmed' %}bg-primary
+          {% else %}bg-secondary{% endif %}">
+          <i class="bi bi-circle-fill me-1" style="font-size:8px;"></i>
+          {{ order.get_status_display }}
+        </span>
+        <a href="{% url 'orders:detail' order.id %}"
+           class="btn btn-sm btn-outline-primary">
+          View Details
+        </a>
+      </div>
+    </div>
+
+    <!-- Order items preview -->
+    <div class="card-body p-3">
+      {% for item in order.items.all|slice:":3" %}
+      <div class="d-flex gap-3 align-items-center
+                  {% if not forloop.last %}mb-3 pb-3 border-bottom{% endif %}">
+
+        <!-- Product image -->
+        {% if item.product and item.product.primary_image %}
+        <img src="{{ item.product.primary_image.image.url }}"
+             alt="{{ item.product_name }}"
+             class="rounded border"
+             style="width:60px;height:60px;object-fit:contain;padding:4px;"/>
+        {% else %}
+        <div class="rounded border d-flex align-items-center
+                    justify-content-center bg-light"
+             style="width:60px;height:60px;">
+          <i class="bi bi-image text-muted"></i>
+        </div>
+        {% endif %}
+
+        <!-- Product info -->
+        <div class="flex-grow-1">
+          <p class="fw-500 mb-0" style="font-size:13.5px;">
+            {{ item.product_name }}
+          </p>
+          <small class="text-muted">
+            Qty: {{ item.quantity }} ×
+            ₹{{ item.product_price|floatformat:0 }}
+          </small>
+        </div>
+
+        <!-- Item subtotal -->
+        <span class="fw-bold small">
+          ₹{{ item.subtotal|floatformat:0 }}
+        </span>
+      </div>
+      {% endfor %}
+
+      <!-- More items indicator -->
+      {% if order.items.count > 3 %}
+      <p class="text-muted small mt-2 mb-0">
+        <i class="bi bi-plus-circle me-1"></i>
+        {{ order.items.count|add:"-3" }} more item(s) in this order
+      </p>
+      {% endif %}
+    </div>
+
+    <!-- Order footer -->
+    <div class="card-footer bg-white border-top d-flex
+                justify-content-between align-items-center py-2">
+      <small class="text-muted">
+        <i class="bi bi-geo-alt me-1"></i>
+        {% if order.address %}
+          {{ order.address.city }}, {{ order.address.state }}
+        {% else %}
+          No address on file
+        {% endif %}
+      </small>
+      <div class="d-flex gap-2">
+        {% if order.status in 'pending,confirmed' %}
+        <form action="{% url 'orders:cancel' order.id %}"
+              method="POST"
+              onsubmit="return confirm('Cancel this order?')">
+          {% csrf_token %}
+          <button type="submit"
+                  class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-x-circle me-1"></i>Cancel
+          </button>
+        </form>
+        {% endif %}
+        <a href="{% url 'orders:detail' order.id %}"
+           class="btn btn-sm btn-fk-primary">
+          <i class="bi bi-eye me-1"></i>Track Order
+        </a>
+      </div>
+    </div>
+
+  </div>
+  {% endfor %}
+
+  {% else %}
+
+  <!-- Empty state -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5">
+      <i class="bi bi-bag-x display-1 text-muted"></i>
+      <h5 class="mt-3 fw-bold">No orders yet</h5>
+      <p class="text-muted">
+        Your order history will appear here once you place an order.
+      </p>
+      <a href="{% url 'products:home' %}"
+         class="btn btn-fk-primary px-5 mt-2">
+        <i class="bi bi-shop me-1"></i>Start Shopping
+      </a>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}

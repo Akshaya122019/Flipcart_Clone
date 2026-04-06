@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}My Wishlist — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h5 class="section-title">My Wishlist ({{ wishlist|length }} items)</h5>
+
+  {% if wishlist %}
+  <div class="row g-3">
+    {% for item in wishlist %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="product-card p-0 position-relative">
+        <div class="card-img-wrap">
+          {% if item.product.primary_image %}
+            <img src="{{ item.product.primary_image.image.url }}"
+                 alt="{{ item.product.name }}"/>
+          {% else %}
+            <img src="https://placehold.co/200x200?text=No+Image" alt="No Image"/>
+          {% endif %}
+        </div>
+        <div class="card-body">
+          <p class="product-name">{{ item.product.name }}</p>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="product-price">₹{{ item.product.discounted_price|floatformat:0 }}</span>
+            {% if item.product.discount %}
+            <span class="product-original">₹{{ item.product.price|floatformat:0 }}</span>
+            <span class="product-discount">{{ item.product.discount }}% off</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-heart display-1 text-muted"></i>
+    <h5 class="mt-3 text-muted">Your wishlist is empty</h5>
+    <a href="{% url 'products:home' %}" class="btn btn-fk-primary mt-2">
+      Start Shopping
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

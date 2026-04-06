@@ -1,0 +1,279 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}Edit: {{ product.name }}{% endblock %}
+{% block brand %}{% if is_seller %}🏪 Seller{% else %}⚡ Admin{% endif %}{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}Edit Product{% endblock %}
+
+{% block sidebar_links %}
+{% if is_seller %}
+<a href="{% url 'dashboard:seller_dashboard' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:seller_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> My Products
+</a>
+<a href="{% url 'dashboard:seller_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> My Orders
+</a>
+{% else %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link">
+  <i class="bi bi-grid"></i> Categories
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Product info form ── -->
+<div class="chart-card mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h6 class="fw-bold mb-1">
+        <i class="bi bi-pencil-square text-primary me-2"></i>
+        {{ product.name }}
+      </h6>
+      <small class="text-muted">ID: {{ product.id }} · Slug: {{ product.slug }}</small>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'products:detail' product.slug %}"
+         target="_blank" class="btn btn-sm btn-outline-info">
+        <i class="bi bi-eye me-1"></i>Preview
+      </a>
+      <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
+               {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
+         class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </a>
+    </div>
+  </div>
+
+  <form method="POST" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_product"/>
+    <div class="row g-3">
+
+      <div class="col-12">
+        <label class="form-label fw-500">Product Name</label>
+        {{ form.name }}
+        {% if form.name.errors %}
+        <div class="text-danger small">{{ form.name.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-500">Slug</label>
+        {{ form.slug }}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-500">Category</label>
+        {{ form.category }}
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label fw-500">Brand</label>
+        {{ form.brand }}
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label fw-500">Price (₹)</label>
+        {{ form.price }}
+        {% if form.price.errors %}
+        <div class="text-danger small">{{ form.price.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label fw-500">Discount %</label>
+        {{ form.discount }}
+      </div>
+
+      <div class="col-md-2">
+        <label class="form-label fw-500">Stock</label>
+        {{ form.stock }}
+      </div>
+
+      <div class="col-12">
+        <label class="form-label fw-500">Description</label>
+        {{ form.description }}
+      </div>
+
+      <div class="col-6">
+        <div class="form-check">
+          {{ form.is_active }}
+          <label class="form-check-label">Active</label>
+        </div>
+      </div>
+      <div class="col-6">
+        <div class="form-check">
+          {{ form.is_featured }}
+          <label class="form-check-label">Featured</label>
+        </div>
+      </div>
+
+    </div>
+    <div class="mt-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save me-1"></i>Update Product
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ── Product Images ── -->
+<div class="chart-card mb-4">
+  <h6 class="fw-bold mb-3">
+    <i class="bi bi-images text-warning me-2"></i>Product Images
+  </h6>
+
+  <!-- Existing images -->
+  {% if images %}
+  <div class="row g-3 mb-4">
+    {% for img in images %}
+    <div class="col-6 col-md-3 col-lg-2">
+      <div class="border rounded p-2 text-center position-relative">
+        <img src="{{ img.image.url }}"
+             alt="{{ img.alt_text }}"
+             class="img-fluid mb-1"
+             style="height:100px;object-fit:contain;"/>
+        {% if img.is_primary %}
+        <span class="badge bg-success d-block mb-1">Primary</span>
+        {% endif %}
+        <form method="POST">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete_image"/>
+          <input type="hidden" name="image_id" value="{{ img.id }}"/>
+          <button type="submit"
+                  class="btn btn-sm btn-outline-danger w-100"
+                  onclick="return confirm('Delete this image?')">
+            <i class="bi bi-trash"></i> Remove
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted small mb-3">No images yet. Add one below.</p>
+  {% endif %}
+
+  <!-- Add image form -->
+  <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_image"/>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-5">
+        <label class="form-label fw-500">Upload Image *</label>
+        {{ img_form.image }}
+        {% if img_form.image.errors %}
+        <div class="text-danger small">{{ img_form.image.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-500">Alt Text</label>
+        {{ img_form.alt_text }}
+      </div>
+      <div class="col-md-2">
+        <div class="form-check mt-4">
+          {{ img_form.is_primary }}
+          <label class="form-check-label fw-500">Primary?</label>
+        </div>
+      </div>
+      <div class="col-md-1">
+        <button type="submit" class="btn btn-success w-100">
+          <i class="bi bi-upload"></i>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- ── Product Variants ── -->
+<div class="chart-card">
+  <h6 class="fw-bold mb-3">
+    <i class="bi bi-tag text-info me-2"></i>
+    Product Variants
+    <small class="text-muted fw-normal">(Size, Color, etc.)</small>
+  </h6>
+
+  <!-- Existing variants -->
+  {% if variants %}
+  <div class="table-responsive mb-4">
+    <table class="table table-sm">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+          <th>Extra Price</th>
+          <th>Stock</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in variants %}
+        <tr>
+          <td>{{ v.name }}</td>
+          <td><strong>{{ v.value }}</strong></td>
+          <td>
+            {% if v.extra_price %}+₹{{ v.extra_price }}{% else %}—{% endif %}
+          </td>
+          <td>{{ v.stock }}</td>
+          <td>
+            <form method="POST" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete_variant"/>
+              <input type="hidden" name="variant_id" value="{{ v.id }}"/>
+              <button type="submit"
+                      class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Delete this variant?')">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted small mb-3">No variants yet.</p>
+  {% endif %}
+
+  <!-- Add variant form -->
+  <form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="add_variant"/>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fw-500">Type (e.g. Size)</label>
+        {{ variant_form.name }}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-500">Value (e.g. XL)</label>
+        {{ variant_form.value }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-500">Extra Price</label>
+        {{ variant_form.extra_price }}
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-500">Stock</label>
+        {{ variant_form.stock }}
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-info w-100 text-white">
+          <i class="bi bi-plus-lg me-1"></i>Add
+        </button>
+      </div>
+    </div>
+  </form>
+
+</div>
+
+{% endblock %}

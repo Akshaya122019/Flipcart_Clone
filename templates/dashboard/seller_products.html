@@ -1,0 +1,122 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}My Products{% endblock %}
+{% block brand %}🏪 Seller{% endblock %}
+{% block brand_sub %}{{ request.user.full_name|default:request.user.username }}{% endblock %}
+{% block page_title %}My Products{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:seller_dashboard' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:seller_products' %}" class="sidebar-link active">
+  <i class="bi bi-box-seam"></i> My Products
+</a>
+<a href="{% url 'dashboard:seller_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> My Orders
+</a>
+<a href="{% url 'dashboard:seller_profile' %}" class="sidebar-link">
+  <i class="bi bi-person-gear"></i> Profile
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="chart-card mb-4">
+  <form method="GET" class="d-flex gap-3">
+    <input type="text" name="search" class="form-control"
+           placeholder="Search products..."
+           value="{{ search }}" style="max-width:340px;"/>
+    <button type="submit" class="btn btn-primary">
+      <i class="bi bi-search me-1"></i>Search
+    </button>
+    <a href="/admin/products/product/add/"
+       class="btn btn-success ms-auto">
+      <i class="bi bi-plus-lg me-1"></i>Add Product
+    </a>
+  </form>
+</div>
+
+<div class="dash-table">
+  <div class="dash-table-header">
+    <h6>My Products ({{ products|length }})</h6>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Discount</th>
+          <th>Stock</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>
+            {% if p.primary_image %}
+            <img src="{{ p.primary_image.image.url }}"
+                 style="width:50px;height:50px;object-fit:contain;border-radius:6px;"/>
+            {% else %}
+            <div class="bg-light rounded d-flex align-items-center
+                        justify-content-center"
+                 style="width:50px;height:50px;">
+              <i class="bi bi-image text-muted"></i>
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <div class="fw-500">{{ p.name|truncatechars:40 }}</div>
+            <small class="text-muted">{{ p.brand|default:"" }}</small>
+          </td>
+          <td>₹{{ p.discounted_price|floatformat:0 }}</td>
+          <td>
+            {% if p.discount %}
+            <span class="badge bg-success">{{ p.discount }}% off</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            <span class="{% if p.stock <= 5 %}text-danger fw-bold{% endif %}">
+              {{ p.stock }}
+            </span>
+          </td>
+          <td>
+            {% if p.is_active %}
+            <span class="badge bg-success">Active</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="d-flex gap-1">
+              <a href="{% url 'dashboard:seller_product_edit' p.id %}"
+                 class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form action="{% url 'dashboard:seller_product_toggle' p.id %}"
+                    method="POST">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-sm {% if p.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+                  <i class="bi bi-{% if p.is_active %}eye-slash{% else %}eye{% endif %}"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <i class="bi bi-box-seam display-4 d-block mb-2"></i>
+            No products yet.
+            <a href="{% url 'dashboard:seller_product_add' %}">Add your first product</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
