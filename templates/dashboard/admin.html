@@ -24,7 +24,7 @@
    class="sidebar-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}">
   <i class="bi bi-box-seam"></i> Products
 </a>
-<a href="{% url 'dashboard:category_add' %}"
+<a href="{% url 'dashboard:category_list' %}"
    class="sidebar-link {% if 'categories' in request.resolver_match.url_name %}active{% endif %}">
   <i class="bi bi-box-seam"></i> Categories
 </a>
