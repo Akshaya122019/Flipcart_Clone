@@ -23,16 +23,15 @@
 <div class="chart-card mb-4">
   <form method="GET" class="row g-3 align-items-end">
     <div class="col-md-5">
-      <input type="text" name="search" class="form-control"
-             placeholder="Search by name, email..."
-             value="{{ search }}"/>
+      <input type="text" name="search" class="form-control" placeholder="Search by name, email..."
+        value="{{ search }}" />
     </div>
     <div class="col-md-4">
       <select name="role" class="form-select">
         <option value="">All Roles</option>
-        <option value="buyer"  {% if role == 'buyer'  %}selected{% endif %}>Buyers</option>
+        <option value="buyer" {% if role == 'buyer' %}selected{% endif %}>Buyers</option>
         <option value="seller" {% if role == 'seller' %}selected{% endif %}>Sellers</option>
-        <option value="admin"  {% if role == 'admin'  %}selected{% endif %}>Admins</option>
+        <option value="admin" {% if role == 'admin' %}selected{% endif %}>Admins</option>
       </select>
     </div>
     <div class="col-md-3">
@@ -45,7 +44,13 @@
 
 <div class="dash-table">
   <div class="dash-table-header">
-    <h6>Users ({{ users|length }})</h6>
+    <h6>
+      <i class="bi bi-people me-2 text-primary"></i>
+      Users ({{ users|length }})
+    </h6>
+    <a href="{% url 'dashboard:user_create' %}" class="btn btn-sm btn-success">
+      <i class="bi bi-person-plus me-1"></i>Add Seller / Admin
+    </a>
   </div>
   <div class="table-responsive">
     <table class="table table-hover">
@@ -89,16 +94,26 @@
           </td>
           <td>
             {% if u != request.user %}
-            <form action="{% url 'dashboard:admin_user_toggle' u.id %}"
-                  method="POST">
-              {% csrf_token %}
-              <button type="submit"
-                      class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-                {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
-              </button>
-            </form>
+            <div class="d-flex gap-1 flex-wrap">
+              <a href="{% url 'dashboard:user_edit' u.id %}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <form action="{% url 'dashboard:admin_user_toggle' u.id %}" method="POST" class="d-inline">
+                {% csrf_token %}
+                <button type="submit"
+                  class="btn btn-sm {% if u.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}"
+                  title="{% if u.is_active %}Deactivate{% else %}Activate{% endif %}">
+                  <i class="bi bi-{% if u.is_active %}person-dash{% else %}person-check{% endif %}"></i>
+                </button>
+              </form>
+              <a href="{% url 'dashboard:user_delete' u.id %}" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-trash"></i>
+              </a>
+            </div>
             {% else %}
-            <span class="text-muted small">You</span>
+            <span class="badge bg-primary">
+              <i class="bi bi-person-check me-1"></i>You
+            </span>
             {% endif %}
           </td>
         </tr>

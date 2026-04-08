@@ -159,3 +159,27 @@ $(document).ready(function () {
   });
 
 });
+
+// ── Image preview before upload ──
+$(document).on('change', 'input[type="file"]', function () {
+  const file    = this.files[0];
+  const preview = $(this).closest('form').find('#upload-preview');
+
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      if (preview.length) {
+        preview.attr('src', e.target.result).show();
+      } else {
+        $(this).closest('.row').prepend(
+          `<div class="col-12 mb-2">
+             <img id="upload-preview" src="${e.target.result}"
+                  style="height:100px;object-fit:contain;border-radius:8px;
+                         border:1px solid #e0e0e0;padding:4px;"/>
+           </div>`
+        );
+      }
+    }.bind(this);
+    reader.readAsDataURL(file);
+  }
+});

@@ -54,4 +54,11 @@ urlpatterns = [
          views.seller_dispatch,       name='seller_dispatch'),
     path('seller/profile/',
          views.seller_profile,        name='seller_profile'),
+     path('admin/users/add/',
+     views.user_create,   name='user_create'),
+path('admin/users/<int:pk>/edit/',
+     views.user_edit,     name='user_edit'),
+path('admin/users/<int:pk>/delete/',
+     views.user_delete,   name='user_delete'),
 ]
+

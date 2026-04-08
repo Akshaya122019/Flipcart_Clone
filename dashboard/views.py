@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib import messages
 from datetime import timedelta
 import json
+from users.forms import AdminUserCreateForm, AdminUserEditForm
 
 from users.models import User
 from products.models import Product, Category
@@ -561,18 +562,27 @@ def product_edit(request, pk):
 
         # ── Add image ──
         elif action == 'add_image':
+            print("=" * 50)
+            print("ACTION: add_image triggered")
+            print("FILES:", request.FILES)
+            print("POST:", request.POST)
             img_form = ProductImageForm(request.POST, request.FILES)
+            print("Form valid:", img_form.is_valid())
+            print("Form errors:", img_form.errors)
+            print("=" * 50)
             if img_form.is_valid():
                 img = img_form.save(commit=False)
                 img.product = product
-                # If marked primary, unset others
                 if img.is_primary:
                     ProductImage.objects.filter(
                         product=product
                     ).update(is_primary=False)
                 img.save()
+                print("SAVED IMAGE:", img.image.path)
                 messages.success(request, 'Image added.')
                 return redirect('dashboard:product_edit', pk=pk)
+            else:
+                messages.error(request, f'Image upload failed: {img_form.errors}')
 
         # ── Delete image ──
         elif action == 'delete_image':
@@ -711,4 +721,67 @@ def seller_product_edit(request, pk):
         'images':       product.images.all(),
         'variants':     product.variants.all(),
         'is_seller':    True,
+    })
+
+
+
+# ══════════════════════════════════════════════════════════
+#  USER MANAGEMENT (Admin only)
+# ══════════════════════════════════════════════════════════
+@staff_member_required
+def user_create(request):
+    """Admin creates a seller or admin account."""
+    form = AdminUserCreateForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        messages.success(
+            request,
+            f'{user.get_role_display()} account created for {user.email}.'
+        )
+        return redirect('dashboard:admin_customers')
+    return render(request, 'dashboard/user_form.html', {
+        'form':  form,
+        'title': 'Add Seller / Admin',
+    })
+
+
+@staff_member_required
+def user_edit(request, pk):
+    """Admin edits any user's details and role."""
+    user = get_object_or_404(User, pk=pk)
+    # Prevent editing yourself via this form
+    if user == request.user:
+        messages.warning(
+            request,
+            'Edit your own profile via the profile page.'
+        )
+        return redirect('dashboard:admin_customers')
+
+    form = AdminUserEditForm(request.POST or None, instance=user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, f'{user.email} updated.')
+        return redirect('dashboard:admin_customers')
+    return render(request, 'dashboard/user_form.html', {
+        'form':  form,
+        'title': f'Edit User — {user.email}',
+        'edit_user': user,
+    })
+
+
+@staff_member_required
+def user_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if user == request.user:
+        messages.error(request, 'You cannot delete your own account.')
+        return redirect('dashboard:admin_customers')
+    if request.method == 'POST':
+        email = user.email
+        user.delete()
+        messages.success(request, f'{email} deleted.')
+        return redirect('dashboard:admin_customers')
+    return render(request, 'dashboard/confirm_delete.html', {
+        'object': user,
+        'title':  'Delete User',
+        'back':   'dashboard:admin_customers',
     })

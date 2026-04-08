@@ -24,6 +24,10 @@
    class="sidebar-link {% if 'products' in request.resolver_match.url_name %}active{% endif %}">
   <i class="bi bi-box-seam"></i> Products
 </a>
+<a href="{% url 'dashboard:category_add' %}"
+   class="sidebar-link {% if 'categories' in request.resolver_match.url_name %}active{% endif %}">
+  <i class="bi bi-box-seam"></i> Categories
+</a>
 <a href="{% url 'dashboard:admin_customers' %}"
    class="sidebar-link {% if 'customers' in request.resolver_match.url_name %}active{% endif %}">
   <i class="bi bi-people"></i> Users

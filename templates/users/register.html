@@ -4,14 +4,18 @@
 {% block content %}
 <div class="container py-5">
   <div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    <div class="col-md-8 col-lg-5">
 
       <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
 
-        <!-- Card header -->
+        <!-- Header -->
         <div class="card-header bg-fk text-white py-4 text-center">
-          <h4 class="mb-0 fw-bold">Create your account</h4>
-          <p class="mb-0 opacity-75 small mt-1">Join millions of happy shoppers</p>
+          <h4 class="mb-0 fw-bold">
+            <i class="bi bi-person-plus me-2"></i>Create Account
+          </h4>
+          <p class="mb-0 opacity-75 small mt-1">
+            Join millions of happy shoppers
+          </p>
         </div>
 
         <div class="card-body p-4">
@@ -19,11 +23,14 @@
             {% csrf_token %}
 
             <div class="row g-3">
-              <div class="col-md-6">
+
+              <div class="col-12">
                 <label class="form-label fw-500">Full Name</label>
                 {{ form.full_name }}
                 {% if form.full_name.errors %}
-                  <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.full_name.errors.0 }}
+                </div>
                 {% endif %}
               </div>
 
@@ -31,15 +38,9 @@
                 <label class="form-label fw-500">Username</label>
                 {{ form.username }}
                 {% if form.username.errors %}
-                  <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
-                {% endif %}
-              </div>
-
-              <div class="col-12">
-                <label class="form-label fw-500">Email Address</label>
-                {{ form.email }}
-                {% if form.email.errors %}
-                  <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.username.errors.0 }}
+                </div>
                 {% endif %}
               </div>
 
@@ -47,15 +48,19 @@
                 <label class="form-label fw-500">Mobile Number</label>
                 {{ form.phone }}
                 {% if form.phone.errors %}
-                  <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.phone.errors.0 }}
+                </div>
                 {% endif %}
               </div>
 
-              <div class="col-md-6">
-                <label class="form-label fw-500">I am a</label>
-                {{ form.role }}
-                {% if form.role.errors %}
-                  <div class="text-danger small mt-1">{{ form.role.errors.0 }}</div>
+              <div class="col-12">
+                <label class="form-label fw-500">Email Address</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.email.errors.0 }}
+                </div>
                 {% endif %}
               </div>
 
@@ -63,7 +68,9 @@
                 <label class="form-label fw-500">Password</label>
                 {{ form.password1 }}
                 {% if form.password1.errors %}
-                  <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.password1.errors.0 }}
+                </div>
                 {% endif %}
               </div>
 
@@ -71,21 +78,38 @@
                 <label class="form-label fw-500">Confirm Password</label>
                 {{ form.password2 }}
                 {% if form.password2.errors %}
-                  <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                <div class="text-danger small mt-1">
+                  {{ form.password2.errors.0 }}
+                </div>
                 {% endif %}
               </div>
+
             </div>
 
-            <div class="d-grid mt-4">
+            <!-- Terms -->
+            <div class="form-check mt-3">
+              <input class="form-check-input" type="checkbox"
+                     id="terms" required/>
+              <label class="form-check-label small" for="terms">
+                I agree to the
+                <a href="#" class="text-fk">Terms of Use</a> and
+                <a href="#" class="text-fk">Privacy Policy</a>
+              </label>
+            </div>
+
+            <div class="d-grid mt-3">
               <button type="submit" class="btn btn-fk-primary btn-lg">
-                <i class="bi bi-person-plus me-2"></i>Create Account
+                <i class="bi bi-bag-heart me-2"></i>Create My Account
               </button>
             </div>
 
             <p class="text-center text-muted small mt-3 mb-0">
               Already have an account?
-              <a href="{% url 'users:login' %}" class="text-fk fw-500">Login here</a>
+              <a href="{% url 'users:login' %}" class="text-fk fw-500">
+                Login here
+              </a>
             </p>
+
           </form>
         </div>
       </div>

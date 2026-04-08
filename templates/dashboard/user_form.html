@@ -1,0 +1,208 @@
+{% extends 'dashboard/_base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block brand %}⚡ Admin{% endblock %}
+{% block brand_sub %}Flipkart Clone{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block sidebar_links %}
+<a href="{% url 'dashboard:admin' %}" class="sidebar-link">
+  <i class="bi bi-speedometer2"></i> Dashboard
+</a>
+<a href="{% url 'dashboard:admin_orders' %}" class="sidebar-link">
+  <i class="bi bi-bag-check"></i> Orders
+</a>
+<a href="{% url 'dashboard:admin_products' %}" class="sidebar-link">
+  <i class="bi bi-box-seam"></i> Products
+</a>
+<a href="{% url 'dashboard:category_list' %}" class="sidebar-link">
+  <i class="bi bi-grid"></i> Categories
+</a>
+<a href="{% url 'dashboard:admin_customers' %}" class="sidebar-link active">
+  <i class="bi bi-people"></i> Users
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="chart-card">
+
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 class="fw-bold mb-0">
+          <i class="bi bi-person-gear text-primary me-2"></i>
+          {{ title }}
+        </h6>
+        <a href="{% url 'dashboard:admin_customers' %}"
+           class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+      </div>
+
+      {% if edit_user %}
+      <!-- User info banner when editing -->
+      <div class="alert alert-info py-2 mb-4 d-flex align-items-center gap-3">
+        <div class="bg-primary text-white rounded-circle d-flex
+                    align-items-center justify-content-center fw-bold"
+             style="width:40px;height:40px;flex-shrink:0;">
+          {{ edit_user.full_name|first|upper|default:edit_user.username|first|upper }}
+        </div>
+        <div>
+          <strong>{{ edit_user.full_name|default:edit_user.username }}</strong>
+          <small class="d-block text-muted">{{ edit_user.email }}</small>
+        </div>
+        <span class="badge ms-auto
+          {% if edit_user.role == 'seller' %}bg-warning text-dark
+          {% elif edit_user.role == 'admin' %}bg-danger
+          {% else %}bg-primary{% endif %}">
+          {{ edit_user.get_role_display }}
+        </span>
+      </div>
+      {% endif %}
+
+      <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Full Name</label>
+            {{ form.full_name }}
+            {% if form.full_name.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.full_name.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.username.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Email Address</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.email.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Mobile Number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.phone.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Password fields only on create -->
+          {% if not edit_user %}
+          <div class="col-md-6">
+            <label class="form-label fw-500">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.password1.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.password2.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <div class="col-md-6">
+            <label class="form-label fw-500">Role</label>
+            {{ form.role }}
+            {% if form.role.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.role.errors.0 }}
+            </div>
+            {% endif %}
+            <small class="text-muted">
+              {% if not edit_user %}
+              Only Seller and Admin roles can be created here.
+              Buyers register themselves.
+              {% endif %}
+            </small>
+          </div>
+
+          {% if edit_user %}
+          <div class="col-md-6 d-flex align-items-end pb-1">
+            <div class="form-check">
+              {{ form.is_active }}
+              <label class="form-check-label fw-500">
+                Account Active
+              </label>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+
+        <!-- Role info boxes -->
+        <div class="row g-2 mt-3 mb-4">
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 bg-warning-subtle">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-shop text-warning"></i>
+                <strong class="small">Seller</strong>
+              </div>
+              <p class="small text-muted mb-0">
+                Can add products, manage inventory,
+                view their orders and earnings.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="border rounded-3 p-3 bg-danger-subtle">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <i class="bi bi-shield-check text-danger"></i>
+                <strong class="small">Admin</strong>
+              </div>
+              <p class="small text-muted mb-0">
+                Full access to dashboard, orders,
+                users, products and analytics.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="submit" class="btn btn-success px-4">
+            <i class="bi bi-person-check me-1"></i>
+            {% if edit_user %}Update User{% else %}Create Account{% endif %}
+          </button>
+          <a href="{% url 'dashboard:admin_customers' %}"
+             class="btn btn-outline-secondary">
+            Cancel
+          </a>
+          {% if edit_user and edit_user != request.user %}
+          <a href="{% url 'dashboard:user_delete' edit_user.pk %}"
+             class="btn btn-outline-danger ms-auto">
+            <i class="bi bi-trash me-1"></i>Delete User
+          </a>
+          {% endif %}
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

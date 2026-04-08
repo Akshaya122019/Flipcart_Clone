@@ -44,7 +44,7 @@
         </a>
       </div>
 
-      <form method="POST" novalidate>
+      <form method="POST" novalidate enctype="multipart/form-data">
         {% csrf_token %}
         <input type="hidden" name="action" value="save_product"/>
 

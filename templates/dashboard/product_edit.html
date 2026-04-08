@@ -127,71 +127,138 @@
 </div>
 
 <!-- ── Product Images ── -->
+<!-- ── Product Images ── -->
 <div class="chart-card mb-4">
-  <h6 class="fw-bold mb-3">
-    <i class="bi bi-images text-warning me-2"></i>Product Images
-  </h6>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0">
+      <i class="bi bi-images text-warning me-2"></i>
+      Product Images
+      <small class="text-muted fw-normal ms-1">
+        ({{ images|length }} uploaded)
+      </small>
+    </h6>
+    {% if not images %}
+    <span class="badge bg-warning text-dark">
+      <i class="bi bi-exclamation-triangle me-1"></i>No images yet
+    </span>
+    {% endif %}
+  </div>
 
-  <!-- Existing images -->
+  <!-- Existing images grid -->
   {% if images %}
   <div class="row g-3 mb-4">
     {% for img in images %}
     <div class="col-6 col-md-3 col-lg-2">
-      <div class="border rounded p-2 text-center position-relative">
+      <div class="border rounded-3 p-2 text-center bg-light position-relative">
         <img src="{{ img.image.url }}"
-             alt="{{ img.alt_text }}"
-             class="img-fluid mb-1"
-             style="height:100px;object-fit:contain;"/>
+             alt="{{ img.alt_text|default:product.name }}"
+             class="img-fluid mb-2 rounded"
+             style="height:90px;object-fit:contain;"/>
         {% if img.is_primary %}
-        <span class="badge bg-success d-block mb-1">Primary</span>
+        <div class="mb-2">
+          <span class="badge bg-success">
+            <i class="bi bi-star-fill me-1"></i>Primary
+          </span>
+        </div>
         {% endif %}
-        <form method="POST">
+        <form method="POST" action="">
           {% csrf_token %}
-          <input type="hidden" name="action" value="delete_image"/>
+          <input type="hidden" name="action"   value="delete_image"/>
           <input type="hidden" name="image_id" value="{{ img.id }}"/>
           <button type="submit"
                   class="btn btn-sm btn-outline-danger w-100"
                   onclick="return confirm('Delete this image?')">
-            <i class="bi bi-trash"></i> Remove
+            <i class="bi bi-trash me-1"></i>Delete
           </button>
         </form>
       </div>
     </div>
     {% endfor %}
   </div>
-  {% else %}
-  <p class="text-muted small mb-3">No images yet. Add one below.</p>
   {% endif %}
 
-  <!-- Add image form -->
-  <form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="add_image"/>
-    <div class="row g-3 align-items-end">
-      <div class="col-md-5">
-        <label class="form-label fw-500">Upload Image *</label>
-        {{ img_form.image }}
-        {% if img_form.image.errors %}
-        <div class="text-danger small">{{ img_form.image.errors.0 }}</div>
-        {% endif %}
+  <!-- Upload new image -->
+  <div class="border rounded-3 p-3 bg-light">
+    <p class="fw-600 small mb-3">
+      <i class="bi bi-upload me-1 text-success"></i>
+      Upload New Image
+    </p>
+
+    <form method="POST"
+          action=""
+          enctype="multipart/form-data"
+          id="image-upload-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add_image"/>
+
+      <!-- Live preview -->
+      <div id="img-preview-wrap" class="mb-3 d-none text-center">
+        <img id="img-preview"
+             src=""
+             alt="Preview"
+             class="rounded border"
+             style="max-height:150px;object-fit:contain;
+                    padding:8px;background:#fff;"/>
+        <p class="text-muted small mt-1 mb-0">Preview</p>
       </div>
-      <div class="col-md-4">
-        <label class="form-label fw-500">Alt Text</label>
-        {{ img_form.alt_text }}
-      </div>
-      <div class="col-md-2">
-        <div class="form-check mt-4">
-          {{ img_form.is_primary }}
-          <label class="form-check-label fw-500">Primary?</label>
+
+      <div class="row g-3">
+
+        <div class="col-md-12">
+          <label class="form-label fw-500">
+            Choose Image File *
+            <small class="text-muted fw-normal">
+              (JPG, PNG, WEBP — recommended 800×800px)
+            </small>
+          </label>
+          <input type="file"
+                 name="image"
+                 id="id_image"
+                 class="form-control"
+                 accept="image/*"
+                 required/>
+          {% if img_form.image.errors %}
+          <div class="text-danger small mt-1">
+            {{ img_form.image.errors.0 }}
+          </div>
+          {% endif %}
         </div>
+
+        <div class="col-md-8">
+          <label class="form-label fw-500">Alt Text</label>
+          <input type="text"
+                 name="alt_text"
+                 id="id_alt_text"
+                 class="form-control"
+                 placeholder="e.g. iPhone 17 Pro Max front view"
+                 value="{{ product.name }}"/>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end pb-1">
+          <div class="form-check">
+            <input type="checkbox"
+                   name="is_primary"
+                   id="id_is_primary"
+                   class="form-check-input"
+                   {% if not images %}checked{% endif %}/>
+            <label class="form-check-label fw-500" for="id_is_primary">
+              Set as Primary
+            </label>
+          </div>
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+          <button type="submit"
+                  class="btn btn-success w-100 fw-600"
+                  id="upload-btn">
+            <i class="bi bi-upload me-1"></i>Upload
+          </button>
+        </div>
+
       </div>
-      <div class="col-md-1">
-        <button type="submit" class="btn btn-success w-100">
-          <i class="bi bi-upload"></i>
-        </button>
-      </div>
-    </div>
-  </form>
+    </form>
+  </div>
+
 </div>
 
 <!-- ── Product Variants ── -->
@@ -246,34 +313,80 @@
   {% endif %}
 
   <!-- Add variant form -->
-  <form method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="action" value="add_variant"/>
-    <div class="row g-3 align-items-end">
-      <div class="col-md-3">
-        <label class="form-label fw-500">Type (e.g. Size)</label>
-        {{ variant_form.name }}
-      </div>
-      <div class="col-md-3">
-        <label class="form-label fw-500">Value (e.g. XL)</label>
-        {{ variant_form.value }}
-      </div>
-      <div class="col-md-2">
-        <label class="form-label fw-500">Extra Price</label>
-        {{ variant_form.extra_price }}
-      </div>
-      <div class="col-md-2">
-        <label class="form-label fw-500">Stock</label>
-        {{ variant_form.stock }}
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-info w-100 text-white">
-          <i class="bi bi-plus-lg me-1"></i>Add
-        </button>
+  <!-- Add image form -->
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" name="action" value="add_image"/>
+
+  <!-- Live preview -->
+  <div id="img-preview-wrap" class="mb-3 d-none">
+    <img id="img-preview"
+         src="" alt="Preview"
+         style="height:120px;object-fit:contain;border-radius:8px;
+                border:2px dashed #2874f0;padding:8px;background:#f0f5ff;"/>
+  </div>
+
+  <div class="row g-3 align-items-end">
+    <div class="col-md-5">
+      <label class="form-label fw-500">
+        Upload Image *
+        <small class="text-muted fw-normal">
+          (JPG, PNG, WEBP — max 5MB)
+        </small>
+      </label>
+      {{ img_form.image }}
+      {% if img_form.image.errors %}
+      <div class="text-danger small">{{ img_form.image.errors.0 }}</div>
+      {% endif %}
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-500">Alt Text</label>
+      {{ img_form.alt_text }}
+    </div>
+    <div class="col-md-2 d-flex align-items-end gap-3">
+      <div class="form-check pb-2">
+        {{ img_form.is_primary }}
+        <label class="form-check-label fw-500">Primary?</label>
       </div>
     </div>
-  </form>
+    <div class="col-md-1 d-flex align-items-end">
+      <button type="submit" class="btn btn-success w-100"
+              title="Upload Image">
+        <i class="bi bi-upload"></i>
+      </button>
+    </div>
+  </div>
+
+</form>
 
 </div>
 
+{% endblock %}
+{% block extra_js %}
+<script>
+// Live image preview
+document.getElementById('id_image').addEventListener('change', function () {
+  const file    = this.files[0];
+  const wrap    = document.getElementById('img-preview-wrap');
+  const preview = document.getElementById('img-preview');
+
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      wrap.classList.remove('d-none');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    wrap.classList.add('d-none');
+  }
+});
+
+// Upload button loading state
+document.getElementById('image-upload-form').addEventListener('submit', function () {
+  const btn = document.getElementById('upload-btn');
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Uploading...';
+  btn.disabled  = true;
+});
+</script>
 {% endblock %}
