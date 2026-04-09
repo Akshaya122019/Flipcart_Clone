@@ -155,7 +155,7 @@
     <ul class="category-nav">
       {% for cat in nav_categories %}
       <li>
-        <a href="#">
+        <a href="{% url 'products:category' cat.slug %}">
           {% if cat.image %}
           <img src="{{ cat.image.url }}" alt="{{ cat.name }}"/>
           {% endif %}
