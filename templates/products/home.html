@@ -21,8 +21,7 @@
                 <p class="hero-tag">Limited Time Deal</p>
                 <h1 class="hero-title">Electronics<br>Sale is Live!</h1>
                 <p class="hero-sub">Up to 70% off on top brands</p>
-                <a href="{% url 'products:search' %}?q=electronics"
-                   class="btn btn-warning btn-lg fw-600 mt-2">
+                <a href="{% url 'products:search' %}?q=electronics" class="btn btn-warning btn-lg fw-600 mt-2">
                   Shop Now <i class="bi bi-arrow-right ms-2"></i>
                 </a>
               </div>
@@ -38,8 +37,7 @@
                 <p class="hero-tag">New Arrivals</p>
                 <h1 class="hero-title">Fashion Week<br>Collection</h1>
                 <p class="hero-sub">Fresh styles. Unbeatable prices.</p>
-                <a href="{% url 'products:search' %}?q=fashion"
-                   class="btn btn-warning btn-lg fw-600 mt-2">
+                <a href="{% url 'products:search' %}?q=fashion" class="btn btn-warning btn-lg fw-600 mt-2">
                   Explore Now <i class="bi bi-arrow-right ms-2"></i>
                 </a>
               </div>
@@ -55,8 +53,7 @@
                 <p class="hero-tag">Best Sellers</p>
                 <h1 class="hero-title">Home &amp; Kitchen<br>Essentials</h1>
                 <p class="hero-sub">Upgrade your living space today</p>
-                <a href="{% url 'products:search' %}?q=home"
-                   class="btn btn-warning btn-lg fw-600 mt-2">
+                <a href="{% url 'products:search' %}?q=home" class="btn btn-warning btn-lg fw-600 mt-2">
                   Buy Now <i class="bi bi-arrow-right ms-2"></i>
                 </a>
               </div>
@@ -78,18 +75,17 @@
 
   <!-- ── Categories grid ── -->
   {% if categories %}
-  <div class="card border-0 shadow-sm p-4 mb-4">
+  <div class="card border-0 shadow-sm p-2 mb-4">
     <h5 class="section-title">Shop by Category</h5>
-    <div class="row g-3 text-center">
+    <div class="row text-center">
       {% for cat in categories %}
-      <div class="col-4 col-md-3 col-lg-2">
-        <a href="{% url 'products:category' cat.slug %}"
-           class="category-tile d-block">
+      <div class="col-2 col-md-2 col-lg-2">
+        <a href="{% url 'products:category' cat.slug %}" class="category-tile d-block">
           <div class="category-tile-img mx-auto">
             {% if cat.image %}
-              <img src="{{ cat.image.url }}" alt="{{ cat.name }}"/>
+            <img src="{{ cat.image.url }}" alt="{{ cat.name }}" />
             {% else %}
-              <i class="bi bi-grid-3x3-gap fs-2 text-fk"></i>
+            <i class="bi bi-grid-3x3-gap fs-2 text-fk"></i>
             {% endif %}
           </div>
           <p class="small fw-500 mt-2 mb-0">{{ cat.name }}</p>
@@ -105,8 +101,7 @@
   <div class="card border-0 shadow-sm p-4 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="section-title mb-0">Deals of the Day</h5>
-      <a href="{% url 'products:search' %}?sort=discount"
-         class="btn btn-sm btn-outline-primary">View All</a>
+      <a href="{% url 'products:search' %}?sort=discount" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
     <div class="row g-3">
       {% for product in deals %}
@@ -121,8 +116,7 @@
   <div class="card border-0 shadow-sm p-4 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="section-title mb-0">Featured Products</h5>
-      <a href="{% url 'products:search' %}?sort=popular"
-         class="btn btn-sm btn-outline-primary">View All</a>
+      <a href="{% url 'products:search' %}?sort=popular" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
     <div class="row g-3">
       {% for product in featured %}
@@ -137,8 +131,7 @@
   <div class="card border-0 shadow-sm p-4 mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="section-title mb-0">New Arrivals</h5>
-      <a href="{% url 'products:search' %}?sort=newest"
-         class="btn btn-sm btn-outline-primary">View All</a>
+      <a href="{% url 'products:search' %}?sort=newest" class="btn btn-sm btn-outline-primary">View All</a>
     </div>
     <div class="row g-3">
       {% for product in new_arrivals %}
