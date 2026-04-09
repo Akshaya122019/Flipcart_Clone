@@ -29,13 +29,19 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<form method="POST" enctype="multipart/form-data" novalidate id="product-form">
+{% csrf_token %}
+
+<div class="row g-4">
+
+  <!-- ── Left: Product details ── -->
   <div class="col-lg-8">
-    <div class="chart-card">
+    <div class="chart-card mb-4">
 
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h6 class="fw-bold mb-0">
-          <i class="bi bi-box-seam text-primary me-2"></i>{{ title }}
+          <i class="bi bi-box-seam text-primary me-2"></i>
+          Product Information
         </h6>
         <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
                  {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
@@ -44,114 +50,357 @@
         </a>
       </div>
 
-      <form method="POST" novalidate enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="save_product"/>
+      <div class="row g-3">
 
-        <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label fw-500">
+            Product Name <span class="text-danger">*</span>
+          </label>
+          {{ form.name }}
+          {% if form.name.errors %}
+          <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
+          {% endif %}
+        </div>
 
-          <div class="col-12">
-            <label class="form-label fw-500">Product Name *</label>
-            {{ form.name }}
-            {% if form.name.errors %}
-            <div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>
-            {% endif %}
+        <div class="col-md-6">
+          <label class="form-label fw-500">
+            Slug
+            <small class="text-muted fw-normal">(auto-generated)</small>
+          </label>
+          {{ form.slug }}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-500">
+            Category <span class="text-danger">*</span>
+          </label>
+          {{ form.category }}
+          {% if form.category.errors %}
+          <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label fw-500">Brand</label>
+          {{ form.brand }}
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label fw-500">
+            Price (₹) <span class="text-danger">*</span>
+          </label>
+          {{ form.price }}
+          {% if form.price.errors %}
+          <div class="text-danger small mt-1">{{ form.price.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label fw-500">Discount %</label>
+          {{ form.discount }}
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label fw-500">
+            Stock <span class="text-danger">*</span>
+          </label>
+          {{ form.stock }}
+          {% if form.stock.errors %}
+          <div class="text-danger small mt-1">{{ form.stock.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="col-12">
+          <label class="form-label fw-500">
+            Description <span class="text-danger">*</span>
+          </label>
+          {{ form.description }}
+          {% if form.description.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.description.errors.0 }}
           </div>
+          {% endif %}
+        </div>
 
-          <div class="col-md-6">
-            <label class="form-label fw-500">
-              Slug
-              <small class="text-muted fw-normal">(auto-generated)</small>
+        <div class="col-6">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label fw-500">
+              Active (visible to buyers)
             </label>
-            {{ form.slug }}
           </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-500">Category *</label>
-            {{ form.category }}
-            {% if form.category.errors %}
-            <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label fw-500">Brand</label>
-            {{ form.brand }}
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label fw-500">Price (₹) *</label>
-            {{ form.price }}
-            {% if form.price.errors %}
-            <div class="text-danger small mt-1">{{ form.price.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label fw-500">Discount (%)</label>
-            {{ form.discount }}
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label fw-500">Stock *</label>
-            {{ form.stock }}
-            {% if form.stock.errors %}
-            <div class="text-danger small mt-1">{{ form.stock.errors.0 }}</div>
-            {% endif %}
-          </div>
-
-          <div class="col-12">
-            <label class="form-label fw-500">Description *</label>
-            {{ form.description }}
-            {% if form.description.errors %}
-            <div class="text-danger small mt-1">
-              {{ form.description.errors.0 }}
-            </div>
-            {% endif %}
-          </div>
-
-          <div class="col-md-6">
-            <div class="form-check">
-              {{ form.is_active }}
-              <label class="form-check-label fw-500">Active (visible to buyers)</label>
-            </div>
-          </div>
-
-          <div class="col-md-6">
-            <div class="form-check">
-              {{ form.is_featured }}
-              <label class="form-check-label fw-500">Featured (show on homepage)</label>
-            </div>
-          </div>
-
         </div>
 
-        <div class="d-flex gap-2 mt-4">
-          <button type="submit" class="btn btn-success px-4">
-            <i class="bi bi-save me-1"></i>Save & Add Images
-          </button>
-          <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
-                   {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
-             class="btn btn-outline-secondary">Cancel</a>
+        <div class="col-6">
+          <div class="form-check">
+            {{ form.is_featured }}
+            <label class="form-check-label fw-500">
+              Featured (show on homepage)
+            </label>
+          </div>
         </div>
 
-      </form>
+      </div>
     </div>
   </div>
+
+  <!-- ── Right: Images + summary ── -->
+  <div class="col-lg-4">
+
+    <!-- Image upload card -->
+    <div class="chart-card mb-4">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-images text-warning me-2"></i>
+        Product Images
+      </h6>
+
+      <!-- Preview area -->
+      <div id="preview-area" class="row g-2 mb-3"></div>
+
+      <!-- Drag & drop zone -->
+      <div id="drop-zone"
+           class="border-2 border-dashed rounded-3 p-4 text-center"
+           style="border: 2px dashed #c0cfe8;
+                  background: #f8fbff;
+                  cursor: pointer;
+                  transition: all .2s;">
+        <i class="bi bi-cloud-upload fs-2 text-primary d-block mb-2"></i>
+        <p class="fw-500 mb-1">Click or drag images here</p>
+        <p class="text-muted small mb-2">
+          JPG, PNG, WEBP — first image becomes primary
+        </p>
+        <input type="file"
+               name="images"
+               id="id_images"
+               multiple
+               accept="image/*"
+               class="d-none"/>
+        <button type="button"
+                class="btn btn-outline-primary btn-sm"
+                onclick="document.getElementById('id_images').click()">
+          <i class="bi bi-folder2-open me-1"></i>Browse Files
+        </button>
+      </div>
+
+      <small class="text-muted d-block mt-2">
+        <i class="bi bi-info-circle me-1"></i>
+        You can also add more images after saving via the Edit page.
+      </small>
+    </div>
+
+    <!-- Quick summary card -->
+    <div class="chart-card">
+      <h6 class="fw-bold mb-3">
+        <i class="bi bi-receipt text-info me-2"></i>
+        Quick Summary
+      </h6>
+      <div id="summary-name" class="fw-500 mb-1 text-muted">
+        Product name will appear here
+      </div>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">Price</span>
+        <span id="summary-price">₹0</span>
+      </div>
+      <div class="d-flex justify-content-between small mb-1">
+        <span class="text-muted">After Discount</span>
+        <span id="summary-final" class="text-success fw-500">₹0</span>
+      </div>
+      <div class="d-flex justify-content-between small mb-3">
+        <span class="text-muted">Stock</span>
+        <span id="summary-stock">0 units</span>
+      </div>
+      <hr/>
+      <div class="d-flex justify-content-between small">
+        <span class="text-muted">Images selected</span>
+        <span id="summary-images" class="fw-500">0</span>
+      </div>
+    </div>
+
+  </div>
 </div>
+
+<!-- ── Submit buttons ── -->
+<div class="chart-card mt-2">
+  <div class="d-flex gap-3 align-items-center flex-wrap">
+
+    <!-- Save + upload images in one shot -->
+    <button type="submit"
+            name="action"
+            value="save_and_image"
+            class="btn btn-success btn-lg px-5 fw-600"
+            id="main-submit-btn">
+      <i class="bi bi-check-circle me-2"></i>
+      Save Product &amp; Upload Images
+    </button>
+
+    <!-- Save only, upload images later -->
+    <button type="submit"
+            name="action"
+            value="save_product"
+            class="btn btn-outline-primary px-4">
+      <i class="bi bi-save me-1"></i>
+      Save Only (Add Images Later)
+    </button>
+
+    <a href="{% if is_seller %}{% url 'dashboard:seller_products' %}
+             {% else %}{% url 'dashboard:admin_products' %}{% endif %}"
+       class="btn btn-outline-secondary px-4">
+      Cancel
+    </a>
+
+  </div>
+  <small class="text-muted mt-2 d-block">
+    <i class="bi bi-lightbulb text-warning me-1"></i>
+    Use <strong>Save Product & Upload Images</strong> to do everything at once.
+    Use <strong>Save Only</strong> to fill in details and add images later.
+  </small>
+</div>
+
+</form>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.getElementById('id_name').addEventListener('input', function () {
-  const slugField = document.getElementById('id_slug');
-  if (!slugField.value) {
-    slugField.value = this.value
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .trim()
-      .replace(/\s+/g, '-');
+$(document).ready(function () {
+
+  // ── Live summary update ──
+  $('#id_name').on('input', function () {
+    const val = $(this).val().trim();
+    $('#summary-name').text(val || 'Product name will appear here')
+                      .toggleClass('text-muted', !val);
+  });
+
+  function updatePrice() {
+    const price    = parseFloat($('#id_price').val()) || 0;
+    const discount = parseFloat($('#id_discount').val()) || 0;
+    const final    = discount > 0 && discount < 100
+                     ? price - (price * discount / 100)
+                     : price;
+    $('#summary-price').text('₹' + price.toLocaleString('en-IN'));
+    $('#summary-final').text('₹' + Math.round(final).toLocaleString('en-IN'));
   }
+
+  $('#id_price, #id_discount').on('input', updatePrice);
+
+  $('#id_stock').on('input', function () {
+    $('#summary-stock').text(($(this).val() || 0) + ' units');
+  });
+
+  // ── Auto slug ──
+  $('#id_name').on('input', function () {
+    const slugField = $('#id_slug');
+    if (!slugField.val()) {
+      slugField.val(
+        $(this).val().toLowerCase()
+               .replace(/[^a-z0-9\s-]/g, '')
+               .trim()
+               .replace(/\s+/g, '-')
+      );
+    }
+  });
+
+  // ── Image handling ──
+  let selectedFiles = [];
+
+  function handleFiles(files) {
+    selectedFiles = Array.from(files);
+    renderPreviews();
+    updateImageCount();
+    syncFilesToInput();
+  }
+
+  function renderPreviews() {
+    const area = $('#preview-area');
+    area.empty();
+    selectedFiles.forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        area.append(`
+          <div class="col-4" id="prev-${i}">
+            <div class="position-relative">
+              <img src="${e.target.result}"
+                   class="img-fluid rounded border"
+                   style="height:80px;width:100%;object-fit:cover;"/>
+              ${i === 0
+                ? '<span class="position-absolute top-0 start-0 badge bg-success m-1" style="font-size:9px;">Primary</span>'
+                : ''}
+              <button type="button"
+                      class="position-absolute top-0 end-0 btn btn-danger btn-sm m-1 p-0 remove-prev"
+                      data-idx="${i}"
+                      style="width:20px;height:20px;font-size:10px;line-height:1;">
+                ✕
+              </button>
+            </div>
+          </div>
+        `);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function updateImageCount() {
+    $('#summary-images').text(selectedFiles.length);
+    if (selectedFiles.length > 0) {
+      $('#drop-zone').css({
+        'border-color': '#2874f0',
+        'background':   '#f0f5ff'
+      });
+    } else {
+      $('#drop-zone').css({
+        'border-color': '#c0cfe8',
+        'background':   '#f8fbff'
+      });
+    }
+  }
+
+  function syncFilesToInput() {
+    // Create a new DataTransfer to sync selected files
+    const dt = new DataTransfer();
+    selectedFiles.forEach(f => dt.items.add(f));
+    document.getElementById('id_images').files = dt.files;
+  }
+
+  // Remove preview
+  $(document).on('click', '.remove-prev', function () {
+    const idx = parseInt($(this).data('idx'));
+    selectedFiles.splice(idx, 1);
+    renderPreviews();
+    updateImageCount();
+    syncFilesToInput();
+  });
+
+  // File input change
+  $('#id_images').on('change', function () {
+    handleFiles(this.files);
+  });
+
+  // Click on drop zone
+  $('#drop-zone').on('click', function (e) {
+    if (!$(e.target).is('button')) {
+      $('#id_images').click();
+    }
+  });
+
+  // Drag & drop
+  $('#drop-zone').on('dragover', function (e) {
+    e.preventDefault();
+    $(this).css({ 'border-color': '#2874f0', 'background': '#e8f0fe' });
+  }).on('dragleave', function () {
+    if (!selectedFiles.length) {
+      $(this).css({ 'border-color': '#c0cfe8', 'background': '#f8fbff' });
+    }
+  }).on('drop', function (e) {
+    e.preventDefault();
+    handleFiles(e.originalEvent.dataTransfer.files);
+  });
+
+  // ── Submit button state ──
+  $('#product-form').on('submit', function () {
+    $('#main-submit-btn').html(
+      '<span class="spinner-border spinner-border-sm me-2"></span>Saving...'
+    ).prop('disabled', true);
+  });
+
 });
 </script>
 {% endblock %}

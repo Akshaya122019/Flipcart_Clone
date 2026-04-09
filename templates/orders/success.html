@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% block title %}Order Placed Successfully — Flipkart Clone{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+
+      <!-- Success banner -->
+      <div class="card border-0 shadow-sm text-center p-5 mb-4">
+
+        <!-- Animated checkmark -->
+        <div class="mb-4">
+          <div class="success-circle mx-auto">
+            <i class="bi bi-check-lg text-white"
+               style="font-size:48px;"></i>
+          </div>
+        </div>
+
+        <h3 class="fw-bold text-success mb-2">
+          Order Placed Successfully!
+        </h3>
+        <p class="text-muted mb-1">
+          Your order number is
+          <strong class="text-fk fs-5">{{ order.order_number }}</strong>
+        </p>
+        <p class="text-muted small mb-4">
+          A confirmation will be sent to
+          <strong>{{ request.user.email }}</strong>
+        </p>
+
+        <!-- Quick stats -->
+        <div class="row g-3 mb-4">
+          <div class="col-3">
+            <div class="bg-light rounded-3 p-3">
+              <small class="text-muted d-block">Order</small>
+              <strong class="text-fk small">{{ order.order_number }}</strong>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="bg-light rounded-3 p-3">
+              <small class="text-muted d-block">Date</small>
+              <strong class="small">{{ order.created_at|date:"d M Y" }}</strong>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="bg-light rounded-3 p-3">
+              <small class="text-muted d-block">Total</small>
+              <strong class="small">₹{{ order.grand_total|floatformat:0 }}</strong>
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="bg-light rounded-3 p-3">
+              <small class="text-muted d-block">Payment</small>
+              <strong class="small">{{ order.get_payment_method_display }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+          <a href="{% url 'orders:detail' order.id %}"
+             class="btn btn-fk-primary px-4">
+            <i class="bi bi-eye me-1"></i>Track Order
+          </a>
+          <a href="{% url 'products:home' %}"
+             class="btn btn-outline-secondary px-4">
+            <i class="bi bi-shop me-1"></i>Continue Shopping
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Order items card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-bag me-2 text-fk"></i>
+            Order Items ({{ items|length }})
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          {% for item in items %}
+          <div class="d-flex gap-3 align-items-center p-3
+                      {% if not forloop.last %}border-bottom{% endif %}">
+            {% if item.product and item.product.primary_image %}
+            <img src="{{ item.product.primary_image.image.url }}"
+                 alt="{{ item.product_name }}"
+                 class="rounded border"
+                 style="width:60px;height:60px;object-fit:contain;padding:4px;"/>
+            {% else %}
+            <div class="rounded border bg-light d-flex align-items-center
+                        justify-content-center"
+                 style="width:60px;height:60px;">
+              <i class="bi bi-image text-muted"></i>
+            </div>
+            {% endif %}
+            <div class="flex-grow-1">
+              <p class="fw-500 mb-0">{{ item.product_name }}</p>
+              <small class="text-muted">
+                Qty: {{ item.quantity }} ×
+                ₹{{ item.product_price|floatformat:0 }}
+              </small>
+            </div>
+            <strong>₹{{ item.subtotal|floatformat:0 }}</strong>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Price summary -->
+        <div class="card-footer bg-white border-top">
+          <div class="d-flex justify-content-between mb-1 small">
+            <span class="text-muted">Subtotal</span>
+            <span>₹{{ order.total_price|floatformat:0 }}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-1 small">
+            <span class="text-muted">Delivery</span>
+            {% if order.shipping_cost == 0 %}
+            <span class="text-success fw-500">FREE</span>
+            {% else %}
+            <span>₹{{ order.shipping_cost|floatformat:0 }}</span>
+            {% endif %}
+          </div>
+          <hr class="my-2"/>
+          <div class="d-flex justify-content-between fw-bold">
+            <span>Total Paid</span>
+            <span class="text-fk">₹{{ order.grand_total|floatformat:0 }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery address -->
+      {% if order.address %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">
+            <i class="bi bi-geo-alt-fill text-fk me-2"></i>
+            Delivering to
+          </h6>
+          <div class="d-flex gap-3 align-items-start">
+            <div class="bg-fk text-white rounded-3 p-2 flex-shrink-0">
+              <i class="bi bi-house-fill fs-5"></i>
+            </div>
+            <div>
+              <strong>{{ order.address.full_name }}</strong>
+              <span class="badge bg-secondary ms-1 small">
+                {{ order.address.get_address_type_display }}
+              </span>
+              <p class="text-muted small mb-0 mt-1">
+                {{ order.address.line1 }}
+                {% if order.address.line2 %}, {{ order.address.line2 }}{% endif %}<br/>
+                {{ order.address.city }}, {{ order.address.state }}
+                — {{ order.address.pincode }}<br/>
+                <i class="bi bi-telephone me-1"></i>{{ order.address.phone }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Estimated delivery -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex align-items-center gap-3">
+            <div class="bg-success text-white rounded-3 p-3 flex-shrink-0">
+              <i class="bi bi-truck fs-4"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold mb-1">Estimated Delivery</h6>
+              <p class="text-muted small mb-0">
+                Your order will be delivered within
+                <strong>3–5 business days</strong>.
+                You will receive updates via email.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.success-circle {
+  width: 90px;
+  height: 90px;
+  background: linear-gradient(135deg, #388e3c, #66bb6a);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pop-in .4s cubic-bezier(.175,.885,.32,1.275);
+  box-shadow: 0 8px 24px rgba(56,142,60,.35);
+}
+@keyframes pop-in {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+</style>
+{% endblock %}

@@ -514,31 +514,59 @@ def category_delete(request, pk):
 # ══════════════════════════════════════════════════════════
 #  PRODUCT CRUD (Admin)
 # ══════════════════════════════════════════════════════════
-
 @staff_member_required
 def product_add(request):
-    form = ProductForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        product = form.save(commit=False)
-        # Admin adds on behalf of seller — assign to self or first seller
-        if request.user.role == 'admin':
-            seller = User.objects.filter(
-                role='seller'
-            ).first() or request.user
-            product.seller = seller
-        else:
-            product.seller = request.user
-        product.save()
-        messages.success(
-            request,
-            f'Product "{product.name}" created. Now add images below.'
-        )
-        return redirect('dashboard:product_edit', pk=product.pk)
-    return render(request, 'dashboard/product_form.html', {
-        'form':  form,
-        'title': 'Add New Product',
-    })
+    form         = ProductForm(request.POST or None)
+    img_form     = ProductImageForm()
+    variant_form = ProductVariantForm()
 
+    if request.method == 'POST':
+        action = request.POST.get('action', 'save_product')
+        form   = ProductForm(request.POST)
+
+        if action == 'save_product' and form.is_valid():
+            product = form.save(commit=False)
+            # Assign seller
+            seller = User.objects.filter(role='seller').first()
+            product.seller = seller or request.user
+            product.save()
+            messages.success(
+                request,
+                f'Product "{product.name}" created. Add images below.'
+            )
+            return redirect('dashboard:product_edit', pk=product.pk)
+
+        elif action == 'save_and_image':
+            form = ProductForm(request.POST)
+            if form.is_valid():
+                product = form.save(commit=False)
+                seller  = User.objects.filter(role='seller').first()
+                product.seller = seller or request.user
+                product.save()
+
+                # Handle multiple image uploads
+                images = request.FILES.getlist('images')
+                for i, img_file in enumerate(images):
+                    ProductImage.objects.create(
+                        product    = product,
+                        image      = img_file,
+                        is_primary = (i == 0),
+                        alt_text   = product.name,
+                    )
+
+                messages.success(
+                    request,
+                    f'Product "{product.name}" created with '
+                    f'{len(images)} image(s).'
+                )
+                return redirect('dashboard:admin_products')
+
+    return render(request, 'dashboard/product_form.html', {
+        'form':         form,
+        'img_form':     img_form,
+        'variant_form': variant_form,
+        'title':        'Add New Product',
+    })
 
 @staff_member_required
 def product_edit(request, pk):
@@ -645,22 +673,52 @@ def product_delete(request, pk):
 
 @seller_required
 def seller_product_add(request):
-    form = ProductForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        product = form.save(commit=False)
-        product.seller = request.user
-        product.save()
-        messages.success(
-            request,
-            f'"{product.name}" created. Now add images.'
-        )
-        return redirect('dashboard:seller_product_edit', pk=product.pk)
-    return render(request, 'dashboard/product_form.html', {
-        'form':      form,
-        'title':     'Add New Product',
-        'is_seller': True,
-    })
+    form         = ProductForm(request.POST or None)
+    img_form     = ProductImageForm()
+    variant_form = ProductVariantForm()
 
+    if request.method == 'POST':
+        action = request.POST.get('action', 'save_product')
+        form   = ProductForm(request.POST)
+
+        if action == 'save_product' and form.is_valid():
+            product        = form.save(commit=False)
+            product.seller = request.user
+            product.save()
+            messages.success(
+                request,
+                f'"{product.name}" created. Add images below.'
+            )
+            return redirect('dashboard:seller_product_edit', pk=product.pk)
+
+        elif action == 'save_and_image':
+            if form.is_valid():
+                product        = form.save(commit=False)
+                product.seller = request.user
+                product.save()
+
+                images = request.FILES.getlist('images')
+                for i, img_file in enumerate(images):
+                    ProductImage.objects.create(
+                        product    = product,
+                        image      = img_file,
+                        is_primary = (i == 0),
+                        alt_text   = product.name,
+                    )
+
+                messages.success(
+                    request,
+                    f'"{product.name}" created with {len(images)} image(s).'
+                )
+                return redirect('dashboard:seller_products')
+
+    return render(request, 'dashboard/product_form.html', {
+        'form':         form,
+        'img_form':     img_form,
+        'variant_form': variant_form,
+        'title':        'Add New Product',
+        'is_seller':    True,
+    })
 
 @seller_required
 def seller_product_edit(request, pk):
