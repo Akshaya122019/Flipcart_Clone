@@ -19,7 +19,7 @@
     <!-- Brand -->
     <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'products:home' %}">
       <div class="brand-logo">
-        <span class="brand-text">Flipkart</span>
+        <span class="brand-text">Shopkart</span>
         <span class="brand-tagline"><em>Explore</em> Plus <i class="bi bi-plus-circle-fill text-warning"></i></span>
       </div>
     </a>
@@ -89,7 +89,7 @@
             {% if user.is_seller %}
             <li><hr class="dropdown-divider"></li>
             <li>
-              <a class="dropdown-item text-primary" href="{% url 'dashboard:seller_dashboard' %}">
+              <a class="dropdown-item text-primary" href="{% url 'dashboard:seller_dashboard' %}" target="_blank">
                 <i class="bi bi-shop me-2"></i>Seller Panel
               </a>
             </li>
@@ -97,7 +97,7 @@
             {% if user.is_staff %}
             <li><hr class="dropdown-divider"></li>
             <li>
-              <a class="dropdown-item text-danger" href="{% url 'dashboard:admin' %}">
+              <a class="dropdown-item text-danger" href="{% url 'dashboard:admin' %}" target="_blank">
                 <i class="bi bi-speedometer2 me-2"></i>Admin Panel
               </a>
             </li>
